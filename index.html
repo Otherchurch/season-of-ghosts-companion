@@ -921,7 +921,7 @@ const GH_TOKEN_KEY = "sog_gh_pat";
 const GH_SHA_KEY = "sog_gh_sha";
 
 function getGhToken(){ return localStorage.getItem(GH_TOKEN_KEY) || ""; }
-function setGhToken(t){ if(t) localStorage.setItem(GH_TOKEN_KEY, t); else { localStorage.removeItem(GH_TOKEN_KEY); localStorage.removeItem(GH_SHA_KEY); } }
+function setGhToken(t){ if(t) localStorage.setItem(GH_TOKEN_KEY, t); else { localStorage.removeItem(GH_TOKEN_KEY); localStorage.removeItem(GH_SHA_KEY); localStorage.removeItem(GH_SESSIONS_SHA_KEY); } }
 function getGhSha(){ return localStorage.getItem(GH_SHA_KEY) || null; }
 function setGhSha(s){ if(s) localStorage.setItem(GH_SHA_KEY, s); else localStorage.removeItem(GH_SHA_KEY); }
 
@@ -1033,20 +1033,21 @@ function scheduleSyncPush(){
   clearTimeout(syncPushTimer);
   setSyncState({status:"syncing"});
   syncPushTimer = setTimeout(async ()=>{
-    try{ await ghPushNotes(loadNotes()); setSyncState({status:"idle", lastSync: Date.now(), error:null}); }
-    catch(e){ setSyncState({status:"error", error:e.message}); }
+    try{ await ghPushNotes(loadNotes()); if(getGhToken()) setSyncState({status:"idle", lastSync: Date.now(), error:null}); }
+    catch(e){ if(getGhToken()) setSyncState({status:"error", error:e.message}); }
   }, 1500);
 }
 async function syncPullAndMerge(){
   if(!getGhToken()) return;
   try{
     const remote = await ghPullNotes();
+    if(!getGhToken()) return; // disconnected while this request was in flight
     if(remote){
       const merged = mergeNotes(loadNotes(), remote);
       saveNotes(merged);
     }
     setSyncState({status:"idle", lastSync: Date.now(), error:null});
-  }catch(e){ setSyncState({status:"error", error:e.message}); }
+  }catch(e){ if(getGhToken()) setSyncState({status:"error", error:e.message}); }
 }
 let syncPushTimerSessions = null;
 function scheduleSessionsSyncPush(){
@@ -1054,20 +1055,21 @@ function scheduleSessionsSyncPush(){
   clearTimeout(syncPushTimerSessions);
   setSyncState({status:"syncing"});
   syncPushTimerSessions = setTimeout(async ()=>{
-    try{ await ghPushSessions(loadSessions()); setSyncState({status:"idle", lastSync: Date.now(), error:null}); }
-    catch(e){ setSyncState({status:"error", error:e.message}); }
+    try{ await ghPushSessions(loadSessions()); if(getGhToken()) setSyncState({status:"idle", lastSync: Date.now(), error:null}); }
+    catch(e){ if(getGhToken()) setSyncState({status:"error", error:e.message}); }
   }, 1500);
 }
 async function syncPullAndMergeSessions(){
   if(!getGhToken()) return;
   try{
     const remote = await ghPullSessions();
+    if(!getGhToken()) return; // disconnected while this request was in flight
     if(remote){
       const merged = mergeNotes(loadSessions(), remote);
       saveSessions(merged);
     }
     setSyncState({status:"idle", lastSync: Date.now(), error:null});
-  }catch(e){ setSyncState({status:"error", error:e.message}); }
+  }catch(e){ if(getGhToken()) setSyncState({status:"error", error:e.message}); }
 }
 
 function startSyncPolling(){
@@ -1095,7 +1097,6 @@ function renderSyncPanel(main){
     const toggleRow = el("div","sync-row"); toggleRow.style.marginTop="8px";
     const offBtn = el("button","btn","Ontkoppelen");
     offBtn.onclick = ()=>{
-      if(!confirm("Cloud sync uitzetten op dit toestel? Je notities en sessievoorbereiding blijven lokaal bewaard.")) return;
       setGhToken(""); clearInterval(syncPollTimer); setSyncState({status:"off", error:null});
       renderMain();
     };
