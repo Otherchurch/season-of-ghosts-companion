@@ -170,22 +170,23 @@ select#noteBookTag{background:var(--bg3); border:1px solid var(--border); color:
 .field-label:first-of-type{margin-top:0;}
 
 /* ---------- Map ---------- */
-.map-wrap{background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:10px; margin-bottom:16px;}
-.willowshore-map{width:100%; height:auto; display:block; border-radius:6px;}
-.willowshore-map text{font-family:inherit;}
-.willowshore-map .map-bg{fill:#181b21;}
-.willowshore-map .map-river{fill:none; stroke:#3d5a6b; stroke-width:10; stroke-linecap:round; opacity:.55;}
-.willowshore-map .map-road{stroke:var(--border); stroke-width:2; stroke-dasharray:5 5; opacity:.7;}
-.willowshore-map .map-town-label{fill:var(--text-faint); font-size:13px; letter-spacing:.1em; text-transform:uppercase;}
-.willowshore-map .map-compass{fill:var(--text-faint); font-size:14px; font-weight:700;}
-.map-poi circle{fill:var(--bg3); stroke:var(--accent); stroke-width:2; cursor:pointer; transition:stroke-width .15s;}
-.map-poi.cat-region circle{stroke:var(--accent3);}
-.map-poi.has-npcs circle{fill:var(--accent); fill-opacity:.3;}
-.map-poi.cat-region.has-npcs circle{fill:var(--accent3); fill-opacity:.3;}
-.map-poi:hover circle{stroke-width:3;}
-.map-poi.selected circle{stroke:var(--text); stroke-width:3.5;}
-.map-poi .map-label{fill:var(--text-dim); font-size:12px; text-anchor:middle; pointer-events:none;}
-.map-poi.has-npcs .map-label{fill:var(--text); font-weight:600;}
+.map-wrap{margin-bottom:12px;}
+.map-imgbox{position:relative; width:100%; border:1px solid var(--border); background:var(--bg2);}
+.map-imgbox img{display:block; width:100%; height:auto; border-radius:8px;}
+.map-pin{position:absolute; transform:translate(-50%,-50%); display:flex; align-items:center; gap:5px; background:rgba(21,23,28,.88); border:1px solid var(--accent); border-radius:20px; padding:3px 9px 3px 3px; cursor:pointer; font-size:11px; color:#d8d5cc; white-space:nowrap; line-height:1.3; max-width:min(220px, 45vw);}
+.map-pin.edge-left{transform:translateY(-50%);}
+.map-pin.edge-right{transform:translateY(-50%) translateX(-100%); flex-direction:row-reverse; padding:3px 3px 3px 9px;}
+.map-pin .pin-dot{width:8px; height:8px; border-radius:50%; background:var(--bg3); border:2px solid var(--accent); flex-shrink:0;}
+.map-pin.has-npcs{color:#fff; font-weight:600;}
+.map-pin.has-npcs .pin-dot{background:var(--accent);}
+.map-pin:hover{border-color:#fff;}
+.map-pin.selected{border-color:#fff; background:rgba(201,128,63,.4);}
+.map-edge-row{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:16px;}
+.map-edge-label{font-size:12px; color:var(--text-faint); margin-right:2px;}
+.map-edge-tab{background:var(--bg3); border:1px solid var(--border); border-radius:20px; padding:5px 12px; font-size:12px; color:var(--text-dim); cursor:pointer;}
+.map-edge-tab:hover{border-color:var(--accent3); color:var(--text);}
+.map-edge-tab.has-npcs{color:var(--text); font-weight:600; border-color:var(--accent3);}
+.map-edge-tab.selected{border-color:var(--text); background:rgba(139,107,184,.3); color:var(--text);}
 .map-detail{background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; min-height:70px;}
 
 /* ---------- Cloud sync ---------- */
@@ -718,95 +719,97 @@ function renderLocations(main, book){
 }
 
 /* =========================================================================
-   MAP (regional map of Willowshore, NPCs plotted by matched location)
+   MAP (real Willowshore town map from Book 1, NPCs pinned by matched location)
    ========================================================================= */
-const SVG_NS = "http://www.w3.org/2000/svg";
-function svgEl(tag, attrs){
-  const e = document.createElementNS(SVG_NS, tag);
-  if(attrs) Object.keys(attrs).forEach(k=> e.setAttribute(k, attrs[k]));
-  return e;
-}
+const WILLOWSHORE_MAP_IMG = "willowshore-map.jpg";
 
+// Coordinates are percentages over the map image, read off the official
+// Willowshore map (matched against the Book 1 gazetteer's W-codes).
 const MAP_POIS = [
-  {key:"teahouse", name:"Cerulean Teahouse", x:460, y:330, cat:"town", keywords:["cerulean teahouse","cerulean theehuis","theehuis"]},
-  {key:"tradeoffice", name:"Trade Office", x:415, y:295, cat:"town", keywords:["trade office","ceiba-duyue exchange"]},
-  {key:"stables", name:"Stables", x:515, y:365, cat:"town", keywords:["stables","stallen"]},
-  {key:"temple", name:"Her Fluvial Lady of Souls", x:375, y:370, cat:"town", keywords:["fluvial lady of souls"]},
-  {key:"graveside", name:"Graveside Manners", x:335, y:325, cat:"town", keywords:["graveside manners"]},
-  {key:"manor", name:"Gouverneurslandhuis", x:510, y:250, cat:"town", keywords:["landhuis","gouverneurswoning","governor's manor","manor"]},
-  {key:"shrine", name:"Nine Ear Shrine", x:430, y:220, cat:"town", keywords:["nine ear shrine","desna-heiligdom","desna shrine"]},
-  {key:"bones", name:"Bones of the Forgotten", x:210, y:175, cat:"town", keywords:["bones of the forgotten"]},
-  {key:"greatwillow", name:"Great Willow", x:470, y:110, cat:"town", keywords:["great willow"]},
-  {key:"bridge", name:"Dawnstep Bridge", x:495, y:485, cat:"town", keywords:["dawnstep bridge","ceiba-rivier","ceiba river"]},
-  {key:"wallofghosts", name:"Wall of Ghosts & Tan Sugi-klooster", x:80, y:300, cat:"region", keywords:["wall of ghosts","tan sugi","klooster","monastery","kugaptee's grave","kugaptee's grasp","pilgrim's path"]},
-  {key:"karahai", name:"Karahai", x:805, y:555, cat:"region", keywords:["karahai"]},
-  {key:"silkwasp", name:"Silkwasp Camp", x:775, y:95, cat:"region", keywords:["silkwasp"]},
-  {key:"moonmarsh", name:"Moon Marsh", x:480, y:35, cat:"region", keywords:["moon marsh"]},
-  {key:"applegrove", name:"Overgrown Apple Grove", x:365, y:605, cat:"region", keywords:["apple grove","appelgaard"]},
-  {key:"whisperweb", name:"Whisperweb Shrine", x:645, y:50, cat:"region", keywords:["whisperweb"]},
+  {key:"teahouse", name:"Cerulean Teahouse", x:32.6, y:52.6, keywords:["cerulean teahouse","cerulean theehuis","theehuis"]},
+  {key:"tradeoffice", name:"Trade Office", x:82.8, y:44.6, keywords:["trade office","ceiba-duyue exchange"]},
+  {key:"stables", name:"Willowshore Stables", x:11.4, y:73.2, keywords:["stables","stallen"]},
+  {key:"graveside", name:"Graveside Manners", x:17.8, y:75.0, keywords:["graveside manners"]},
+  {key:"shrine", name:"Nine Ear Shrine", x:49.3, y:65.6, keywords:["nine ear shrine","desna-heiligdom","desna shrine"]},
+  {key:"bones", name:"Bones of the Forgotten", x:15.8, y:21.7, keywords:["bones of the forgotten"]},
+  {key:"greatwillow", name:"Great Willow", x:39.8, y:15.8, keywords:["great willow"]},
+  {key:"bridge", name:"Dawnstep Bridge", x:36.8, y:60.3, keywords:["dawnstep bridge","ceiba-rivier","ceiba river"]},
+  {key:"temple", name:"Her Fluvial Lady of Souls", x:39.8, y:78.8, keywords:["fluvial lady of souls"]},
+  {key:"matsuki", name:"Matsuki Estate", x:16.9, y:56.8, keywords:["matsuki estate"]},
+  {key:"manor", name:"Gouverneurslandhuis", x:44, y:36, keywords:["landhuis","gouverneurswoning","governor's manor","manor"]},
+];
+
+// Named places too far away to fit on the town map — shown as a row of
+// clickable "beyond the map" tabs instead of pins.
+const MAP_EDGE_POIS = [
+  {key:"wallofghosts", name:"Wall of Ghosts & Tan Sugi-klooster", keywords:["wall of ghosts","tan sugi","klooster","monastery","kugaptee's grave","kugaptee's grasp","pilgrim's path"]},
+  {key:"karahai", name:"Karahai", keywords:["karahai"]},
+  {key:"silkwasp", name:"Silkwasp Camp", keywords:["silkwasp"]},
+  {key:"moonmarsh", name:"Moon Marsh", keywords:["moon marsh"]},
+  {key:"whisperweb", name:"Whisperweb Shrine", keywords:["whisperweb"]},
+  {key:"applegrove", name:"Overgrown Apple Grove", keywords:["apple grove","appelgaard"]},
 ];
 
 function matchPOI(locationText){
   if(!locationText) return null;
   const lower = locationText.toLowerCase();
-  let best = null, bestLen = 0;
+  let best = null, bestLen = 0, onEdge = false;
   MAP_POIS.forEach(p=>{
-    p.keywords.forEach(k=>{
-      if(lower.includes(k) && k.length > bestLen){ best = p; bestLen = k.length; }
-    });
+    p.keywords.forEach(k=>{ if(lower.includes(k) && k.length > bestLen){ best = p; bestLen = k.length; onEdge = false; } });
   });
-  return best;
+  MAP_EDGE_POIS.forEach(p=>{
+    p.keywords.forEach(k=>{ if(lower.includes(k) && k.length > bestLen){ best = p; bestLen = k.length; onEdge = true; } });
+  });
+  return best ? {poi: best, edge: onEdge} : null;
 }
 
 function renderMap(main, book){
-  const wrap = el("div","map-wrap");
-  const byPoi = new Map();
+  const byKey = new Map();
   const unplaced = [];
   book.npcs.forEach(n=>{
-    const poi = matchPOI(n.location);
-    if(poi){ if(!byPoi.has(poi.key)) byPoi.set(poi.key, []); byPoi.get(poi.key).push(n); }
+    const m = matchPOI(n.location);
+    if(m){ const k=m.poi.key; if(!byKey.has(k)) byKey.set(k, []); byKey.get(k).push(n); }
     else unplaced.push(n);
   });
 
-  const svg = svgEl("svg", {viewBox:"0 0 900 640", class:"willowshore-map"});
-  svg.appendChild(svgEl("rect", {x:0,y:0,width:900,height:640,class:"map-bg"}));
-  svg.appendChild(svgEl("path", {d:"M 60 240 Q 250 300 350 380 T 520 480 T 800 560", class:"map-river"}));
-
-  const townCenter = {x:430, y:300};
-  MAP_POIS.filter(p=>p.cat==="region").forEach(p=>{
-    svg.appendChild(svgEl("line", {x1:townCenter.x, y1:townCenter.y, x2:p.x, y2:p.y, class:"map-road"}));
-  });
-
-  const townLabel = svgEl("text", {x:430, y:230, class:"map-town-label", "text-anchor":"middle"});
-  townLabel.textContent = "Willowshore";
-  svg.appendChild(townLabel);
-  const compass = svgEl("text", {x:855, y:28, class:"map-compass"});
-  compass.textContent = "N ↑";
-  svg.appendChild(compass);
-
+  const wrap = el("div","map-wrap");
+  const imgBox = el("div","map-imgbox");
+  const img = el("img",""); img.src = WILLOWSHORE_MAP_IMG; img.alt = "Kaart van Willowshore";
+  imgBox.appendChild(img);
   MAP_POIS.forEach(p=>{
-    const npcs = byPoi.get(p.key) || [];
-    const r = npcs.length ? Math.min(20, 9 + npcs.length*2.5) : 6;
-    const g = svgEl("g", {class:"map-poi"+(npcs.length? " has-npcs":"")+" cat-"+p.cat, "data-poi":p.key, tabindex:"0", role:"button", "aria-label":p.name});
-    g.appendChild(svgEl("circle", {cx:p.x, cy:p.y, r:r}));
-    const label = svgEl("text", {x:p.x, y:p.y - r - 6, "text-anchor":"middle", class:"map-label"});
-    label.textContent = p.name + (npcs.length? " ("+npcs.length+")":"");
-    g.appendChild(label);
-    svg.appendChild(g);
+    const npcs = byKey.get(p.key) || [];
+    const edgeCls = p.x < 22 ? " edge-left" : (p.x > 78 ? " edge-right" : "");
+    const pin = el("button","map-pin"+edgeCls+(npcs.length?" has-npcs":""));
+    pin.style.left = p.x+"%"; pin.style.top = p.y+"%";
+    pin.type = "button";
+    pin.innerHTML = `<span class="pin-dot"></span><span class="pin-label">${esc(p.name)}${npcs.length?` (${npcs.length})`:""}</span>`;
+    pin.onclick = ()=> selectPoi(p, npcs, pin);
+    imgBox.appendChild(pin);
   });
-
-  wrap.appendChild(svg);
+  wrap.appendChild(imgBox);
   main.appendChild(wrap);
 
+  const edgeRow = el("div","map-edge-row");
+  edgeRow.appendChild(el("span","map-edge-label","🧭 Buiten de kaart:"));
+  MAP_EDGE_POIS.forEach(p=>{
+    const npcs = byKey.get(p.key) || [];
+    const tab = el("button","map-edge-tab"+(npcs.length?" has-npcs":""), esc(p.name)+(npcs.length?` (${npcs.length})`:""));
+    tab.type = "button";
+    tab.onclick = ()=> selectPoi(p, npcs, tab);
+    edgeRow.appendChild(tab);
+  });
+  main.appendChild(edgeRow);
+
   const detail = el("div","map-detail");
-  detail.appendChild(el("div","empty-state","Klik op een locatie op de kaart voor de NPC's die daar te vinden zijn."));
+  detail.appendChild(el("div","empty-state","Klik op een locatie voor de NPC's die daar te vinden zijn."));
   main.appendChild(detail);
 
-  function selectPoi(g){
-    svg.querySelectorAll(".map-poi").forEach(x=>x.classList.remove("selected"));
-    g.classList.add("selected");
-    const poi = MAP_POIS.find(p=>p.key===g.dataset.poi);
-    const npcs = byPoi.get(poi.key) || [];
+  function clearSelection(){
+    main.querySelectorAll(".map-pin.selected, .map-edge-tab.selected").forEach(x=>x.classList.remove("selected"));
+  }
+  function selectPoi(poi, npcs, elm){
+    clearSelection();
+    if(elm) elm.classList.add("selected");
     detail.innerHTML = "";
     detail.appendChild(el("h3","", "📍 "+esc(poi.name)));
     if(!npcs.length){
@@ -815,25 +818,28 @@ function renderMap(main, book){
       npcs.forEach(n=> detail.appendChild(npcCard(n)));
     }
   }
-  svg.querySelectorAll("[data-poi]").forEach(g=>{
-    g.addEventListener("click", ()=>selectPoi(g));
-    g.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); selectPoi(g); } });
-  });
 
   if(unplaced.length){
     const c = el("div","card");
-    c.appendChild(el("h3","","Overige NPC's (locatie niet herkend op de kaart)"));
-    c.appendChild(el("p","","Deze personages bevinden zich ergens buiten de vaste kaartlocaties hierboven — check het NPC-tabblad voor de volledige locatietekst."));
+    c.appendChild(el("h3","","Overige NPC's (locatie niet op de kaart)"));
+    c.appendChild(el("p","","Deze personages horen bij een plek die niet apart op de kaart staat — klik op een naam voor de volledige fiche."));
     const chipRow = el("div","chip-row");
     unplaced.forEach(n=>{
       const chip = el("span","chip", esc(n.name));
       chip.title = n.location;
+      chip.onclick = ()=>{
+        clearSelection();
+        detail.innerHTML = "";
+        detail.appendChild(el("h3","", "📍 "+esc(n.location||"Onbekende locatie")));
+        detail.appendChild(npcCard(n));
+      };
       chipRow.appendChild(chip);
     });
     c.appendChild(chipRow);
     main.appendChild(c);
   }
 }
+
 
 function renderTimeline(main){
   main.appendChild(el("h2","page-title","Campagne-tijdlijn"));
