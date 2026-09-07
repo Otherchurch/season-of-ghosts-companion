@@ -154,6 +154,8 @@ details.chapter[open] summary{border-bottom:1px solid var(--border);}
   border-radius:var(--radius); padding:14px; font-size:14.5px; line-height:1.6; font-family:inherit; resize:vertical;
 }
 #noteEditor textarea:focus{outline:none; border-color:var(--accent);}
+#noteEditor textarea.session-textarea{min-height:260px; margin-bottom:16px; font-size:15.5px;}
+#noteEditor textarea.session-textarea-notes{min-height:320px;}
 .note-toolbar{display:flex; gap:8px; margin-bottom:10px; align-items:center;}
 button.btn{
   background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:7px 14px;
@@ -1374,18 +1376,15 @@ function renderSessions(main){
     editorCol.appendChild(toolbar);
 
     editorCol.appendChild(el("div","field-label","🎭 Intro — sfeer om de sessie mee te openen"));
-    const introArea = el("textarea",""); introArea.value = s.intro||""; introArea.placeholder="Lees dit voor om de spelers meteen in de sfeer te krijgen...";
-    introArea.style.minHeight = "110px";
+    const introArea = el("textarea","session-textarea"); introArea.value = s.intro||""; introArea.placeholder="Lees dit voor om de spelers meteen in de sfeer te krijgen...";
     editorCol.appendChild(introArea);
 
     editorCol.appendChild(el("div","field-label","🔀 Waarschijnlijke opties / vertakkingen"));
-    const optionsArea = el("textarea",""); optionsArea.value = s.options||""; optionsArea.placeholder="Wat kunnen de spelers deze sessie waarschijnlijk doen of kiezen?";
-    optionsArea.style.minHeight = "110px";
+    const optionsArea = el("textarea","session-textarea"); optionsArea.value = s.options||""; optionsArea.placeholder="Wat kunnen de spelers deze sessie waarschijnlijk doen of kiezen?";
     editorCol.appendChild(optionsArea);
 
     editorCol.appendChild(el("div","field-label","📌 Aantekeningen"));
-    const notesArea = el("textarea",""); notesArea.value = s.notes||""; notesArea.placeholder="Losse aantekeningen, herinneringen, dingen om niet te vergeten...";
-    notesArea.style.minHeight = "140px";
+    const notesArea = el("textarea","session-textarea session-textarea-notes"); notesArea.value = s.notes||""; notesArea.placeholder="Losse aantekeningen, herinneringen, dingen om niet te vergeten...";
     editorCol.appendChild(notesArea);
 
     function persist(){
