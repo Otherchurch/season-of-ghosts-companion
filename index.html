@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Season of Ghosts — Campaign Companion</title>
+<style>
+:root{
+  --bg:#15171c; --bg2:#1c1f26; --bg3:#242832; --border:#333844;
+  --text:#e8e6e0; --text-dim:#a3a8b5; --text-faint:#6b7182;
+  --accent:#c9803f; --accent2:#7a9e7e; --accent3:#8b6bb8;
+  --danger:#c0564f; --north:#5b8fb0; --south:#b0895b;
+  --shadow: 0 2px 12px rgba(0,0,0,.4);
+  --radius:8px;
+  font-size:15px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  display:flex; flex-direction:column; min-height:100vh;
+}
+::selection{background:var(--accent); color:#1a1a1a;}
+a{color:var(--accent);}
+
+/* ---------- Layout ---------- */
+#topbar{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 16px; background:var(--bg2); border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:50;
+}
+#topbar h1{font-size:16px; margin:0; font-weight:700; color:var(--accent); white-space:nowrap;}
+#topbar .book-tabs{display:flex; gap:4px; flex-wrap:wrap;}
+.book-tab{
+  padding:6px 12px; border-radius:6px; background:var(--bg3); border:1px solid var(--border);
+  cursor:pointer; font-size:13px; color:var(--text-dim); white-space:nowrap;
+}
+.book-tab:hover{color:var(--text);}
+.book-tab.active{background:var(--accent); color:#1a1310; border-color:var(--accent); font-weight:600;}
+#searchWrap{margin-left:auto; position:relative;}
+#searchBox{
+  background:var(--bg3); border:1px solid var(--border); color:var(--text);
+  padding:7px 12px 7px 30px; border-radius:6px; width:230px; font-size:13px;
+}
+#searchBox:focus{outline:none; border-color:var(--accent);}
+#searchWrap::before{content:"🔍"; position:absolute; left:9px; top:7px; font-size:12px; opacity:.6;}
+#searchResults{
+  position:absolute; top:36px; right:0; width:380px; max-height:420px; overflow:auto;
+  background:var(--bg2); border:1px solid var(--border); border-radius:8px; box-shadow:var(--shadow);
+  display:none; z-index:100;
+}
+#searchResults.show{display:block;}
+.sr-item{padding:9px 12px; border-bottom:1px solid var(--border); cursor:pointer;}
+.sr-item:hover{background:var(--bg3);}
+.sr-item:last-child{border-bottom:none;}
+.sr-tag{font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-faint); margin-right:6px;}
+.sr-name{font-weight:600; color:var(--text);}
+.sr-meta{font-size:12px; color:var(--text-dim); margin-top:2px;}
+
+#body{display:flex; flex:1; min-height:0;}
+#sidebar{
+  width:190px; flex-shrink:0; background:var(--bg2); border-right:1px solid var(--border);
+  padding:14px 0; overflow-y:auto;
+}
+.nav-item{
+  padding:9px 18px; cursor:pointer; color:var(--text-dim); font-size:14px;
+  border-left:3px solid transparent; display:flex; align-items:center; gap:8px;
+}
+.nav-item:hover{background:var(--bg3); color:var(--text);}
+.nav-item.active{border-left-color:var(--accent); color:var(--text); background:var(--bg3); font-weight:600;}
+.nav-sep{height:1px; background:var(--border); margin:10px 16px;}
+.nav-label{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); padding:6px 18px 2px;}
+
+#main{flex:1; overflow-y:auto; padding:22px 30px 60px;}
+#main.narrow{max-width:900px;}
+
+/* ---------- Content elements ---------- */
+h2.page-title{font-size:22px; margin:0 0 4px; color:var(--text);}
+.page-sub{color:var(--text-dim); font-size:13px; margin-bottom:20px;}
+.card{
+  background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius);
+  padding:16px 18px; margin-bottom:14px;
+}
+.card h3{margin:0 0 8px; font-size:15px; color:var(--accent);}
+.card p{margin:6px 0; line-height:1.55; color:var(--text);}
+.card .meta-row{display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--text-dim); margin-bottom:8px;}
+.meta-row b{color:var(--text);}
+.badge{
+  display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600;
+  background:var(--bg3); color:var(--text-dim); border:1px solid var(--border);
+}
+.badge.north{color:var(--north); border-color:var(--north);}
+.badge.south{color:var(--south); border-color:var(--south);}
+.badge.danger{color:var(--danger); border-color:var(--danger);}
+.badge.accent2{color:var(--accent2); border-color:var(--accent2);}
+
+table.ref-table{width:100%; border-collapse:collapse; font-size:13.5px;}
+table.ref-table th{text-align:left; color:var(--text-faint); font-weight:600; padding:6px 10px; border-bottom:1px solid var(--border); font-size:11px; text-transform:uppercase; letter-spacing:.04em;}
+table.ref-table td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text);}
+table.ref-table tr:last-child td{border-bottom:none;}
+table.ref-table tr:hover td{background:var(--bg3);}
+
+.chip-row{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0;}
+.chip{
+  padding:5px 10px; border-radius:6px; background:var(--bg3); border:1px solid var(--border);
+  font-size:12.5px; cursor:pointer; color:var(--text-dim);
+}
+.chip:hover{color:var(--text); border-color:var(--accent);}
+
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media(max-width:900px){.grid2{grid-template-columns:1fr;}}
+
+details.chapter{background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:8px;}
+details.chapter summary{padding:12px 16px; cursor:pointer; font-weight:600; color:var(--text); list-style:none; display:flex; justify-content:space-between;}
+details.chapter summary::-webkit-details-marker{display:none;}
+details.chapter summary .pg{color:var(--text-faint); font-weight:400; font-size:12px;}
+details.chapter .chapter-body{padding:0 16px 16px; color:var(--text); line-height:1.6; font-size:14px;}
+details.chapter[open] summary{border-bottom:1px solid var(--border);}
+
+.timeline{border-left:2px solid var(--border); margin-left:8px; padding-left:18px;}
+.tl-item{position:relative; margin-bottom:14px;}
+.tl-item::before{content:""; position:absolute; left:-23px; top:4px; width:9px; height:9px; border-radius:50%; background:var(--accent);}
+.tl-date{font-weight:700; color:var(--accent); font-size:12.5px;}
+.tl-text{color:var(--text); font-size:14px; line-height:1.5; margin-top:2px;}
+
+.searchable-hidden{display:none !important;}
+.filter-bar{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center;}
+.filter-bar input[type=text]{
+  background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:7px 10px;
+  border-radius:6px; font-size:13px; flex:1; min-width:160px;
+}
+.filter-bar select{background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:7px 10px; border-radius:6px; font-size:13px;}
+
+/* ---------- Notes ---------- */
+#notesLayout{display:flex; gap:20px; align-items:flex-start;}
+#notesList{width:260px; flex-shrink:0;}
+.note-card{
+  background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius);
+  padding:10px 12px; margin-bottom:8px; cursor:pointer;
+}
+.note-card:hover{border-color:var(--accent);}
+.note-card.active{border-color:var(--accent); background:var(--bg3);}
+.note-card .n-title{font-weight:600; font-size:13.5px; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.note-card .n-meta{font-size:11px; color:var(--text-faint);}
+#noteEditor{flex:1;}
+#noteEditor input#noteTitle{
+  width:100%; background:transparent; border:none; border-bottom:1px solid var(--border); color:var(--text);
+  font-size:20px; font-weight:700; padding:6px 2px 10px; margin-bottom:10px;
+}
+#noteEditor input#noteTitle:focus{outline:none; border-color:var(--accent);}
+#noteEditor textarea{
+  width:100%; min-height:340px; background:var(--bg2); border:1px solid var(--border); color:var(--text);
+  border-radius:var(--radius); padding:14px; font-size:14.5px; line-height:1.6; font-family:inherit; resize:vertical;
+}
+#noteEditor textarea:focus{outline:none; border-color:var(--accent);}
+.note-toolbar{display:flex; gap:8px; margin-bottom:10px; align-items:center;}
+button.btn{
+  background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:7px 14px;
+  border-radius:6px; cursor:pointer; font-size:13px;
+}
+button.btn:hover{border-color:var(--accent); color:var(--accent);}
+button.btn.primary{background:var(--accent); color:#1a1310; border-color:var(--accent); font-weight:600;}
+button.btn.danger{color:var(--danger); border-color:var(--danger);}
+select#noteBookTag{background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:7px 10px; border-radius:6px; font-size:13px;}
+.autosave-hint{font-size:11px; color:var(--text-faint); margin-left:auto;}
+
+.empty-state{color:var(--text-faint); font-style:italic; padding:30px; text-align:center;}
+.field-label{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint); margin:16px 0 6px;}
+.field-label:first-of-type{margin-top:0;}
+
+/* ---------- Map ---------- */
+.map-wrap{background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:10px; margin-bottom:16px;}
+.willowshore-map{width:100%; height:auto; display:block; border-radius:6px;}
+.willowshore-map text{font-family:inherit;}
+.willowshore-map .map-bg{fill:#181b21;}
+.willowshore-map .map-river{fill:none; stroke:#3d5a6b; stroke-width:10; stroke-linecap:round; opacity:.55;}
+.willowshore-map .map-road{stroke:var(--border); stroke-width:2; stroke-dasharray:5 5; opacity:.7;}
+.willowshore-map .map-town-label{fill:var(--text-faint); font-size:13px; letter-spacing:.1em; text-transform:uppercase;}
+.willowshore-map .map-compass{fill:var(--text-faint); font-size:14px; font-weight:700;}
+.map-poi circle{fill:var(--bg3); stroke:var(--accent); stroke-width:2; cursor:pointer; transition:stroke-width .15s;}
+.map-poi.cat-region circle{stroke:var(--accent3);}
+.map-poi.has-npcs circle{fill:var(--accent); fill-opacity:.3;}
+.map-poi.cat-region.has-npcs circle{fill:var(--accent3); fill-opacity:.3;}
+.map-poi:hover circle{stroke-width:3;}
+.map-poi.selected circle{stroke:var(--text); stroke-width:3.5;}
+.map-poi .map-label{fill:var(--text-dim); font-size:12px; text-anchor:middle; pointer-events:none;}
+.map-poi.has-npcs .map-label{fill:var(--text); font-weight:600;}
+.map-detail{background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; min-height:70px;}
+
+/* ---------- Cloud sync ---------- */
+.sync-panel{
+  background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius);
+  padding:12px 14px; margin-bottom:16px; font-size:13px;
+}
+.sync-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.sync-dot{width:9px; height:9px; border-radius:50%; background:var(--text-faint); flex-shrink:0;}
+.sync-dot.on{background:var(--accent2); box-shadow:0 0 6px var(--accent2);}
+.sync-dot.err{background:var(--danger); box-shadow:0 0 6px var(--danger);}
+.sync-label{color:var(--text-dim);}
+.sync-panel input[type=password]{
+  background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:7px 10px;
+  border-radius:6px; font-size:13px; flex:1; min-width:220px;
+}
+.sync-help{font-size:12px; color:var(--text-faint); margin-top:8px; line-height:1.5;}
+.sync-help a{color:var(--accent);}
+.sync-panel.setup{border-color:var(--accent3);}
+
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--bg3); border-radius:5px; border:2px solid var(--bg);}
+::-webkit-scrollbar-thumb:hover{background:var(--border);}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <h1>👻 Season of Ghosts</h1>
+  <div class="book-tabs" id="bookTabs"></div>
+  <div id="searchWrap">
+    <input type="text" id="searchBox" placeholder="Zoek NPC, locatie, plot... (Ctrl+K)">
+    <div id="searchResults"></div>
+  </div>
+</div>
+
+<div id="body">
+  <div id="sidebar">
+    <div class="nav-label">Boek</div>
+    <div class="nav-item" data-view="overview">📖 Overzicht</div>
+    <div class="nav-item" data-view="chapters">📜 Hoofdstukken</div>
+    <div class="nav-item" data-view="npcs">🧑 NPC's</div>
+    <div class="nav-item" data-view="locations">🗺️ Locaties</div>
+    <div class="nav-item" data-view="map">🧭 Kaart</div>
+    <div class="nav-item" data-view="factions">⚔️ Facties</div>
+    <div class="nav-item" data-view="mysteries">🔮 Mysteries</div>
+    <div class="nav-sep"></div>
+    <div class="nav-label">Campagne</div>
+    <div class="nav-item" data-view="timeline">🕰️ Tijdlijn</div>
+    <div class="nav-item" data-view="connections">🔗 Connecties</div>
+    <div class="nav-item" data-view="sessions">🎬 Sessievoorbereiding</div>
+    <div class="nav-sep"></div>
+    <div class="nav-item" data-view="notes">📝 Notities</div>
+  </div>
+
+  <div id="main"></div>
+</div>
+
+<script>
+/* =========================================================================
+   DATA
+   ========================================================================= */
+const CAMPAIGN = {
+  setting: "Willowshore (Shenmen, Tian Xia) — een spookdorp gevangen in een mindscape-tijdlus sinds 7108 ic.",
+  premise: "De inwoners van Willowshore — inclusief de PCs — zijn al 115 jaar dood en herleven eindeloos 'de eerste dag van zomer 7108'. Lumber baron Mago Kai's poging om het (in de echte tijdlijn, jaar 7223) verlaten dorp te heropbouwen verstoort de lus voor het eerst, en geeft de PCs een kans om te ontsnappen."
+};
+
+const GLOBAL_TIMELINE = [
+  {date:"6223 ic", text:"Tan Sui-Jing verslaat de fiend Kugaptee maar sterft; haar lichaam laat een sugi-boom ontspruiten over Kugaptee's graf."},
+  {date:"7020 ic", text:"Master Zhi Hui vindt de sugi-boom en sticht het Tan Sugi-klooster eromheen."},
+  {date:"7054 ic", text:"Zhi Hui sterft. Het klooster raakt in verval."},
+  {date:"7060-7062 ic", text:"Willowshore wordt een houtkamp voor Lung Wa; poging om de sugi-bomen te oogsten mislukt grimmig."},
+  {date:"7105 ic", text:"Gouverneur Heh Shan-Bao laat de gezochte zangeres/rebel Fan Hongrui en metgezellen omkomen bij Canary Inn; haar laatste woorden klinken als een vloek."},
+  {date:"7106 ic", text:"Lung Wa-rijk stort in. Shenmen valt onder de jorogumo Lang Loi."},
+  {date:"7108 ic", text:"Heh Shan-Bao's ritueel om de sugi-boom te genezen en Kugaptee te verzegelen faalt volledig — heel Willowshore sterft in hun slaap. Twee mindscapes ontstaan: (1) de dorpelingen + PCs in een eeuwige lus, (2) Heh Shan-Bao alleen, gevangen tussen werelden."},
+  {date:"7223 ic (heden)", text:"Lumber baron Mago Kai (namens het spook Chou Mingxia van Sze) start een heropbouw/exorcisme-poging — de eerste verstoring van de lus in 115 jaar. Boek 1 begint hier."}
+];
+
+const BOOKS = [
+{
+  id:1, key:"boek1", title:"The Summer That Never Was", subtitle:"Boek 1 · Level 1–3 · door Sen H.H.S.",
+  color:"#c9803f",
+  overview:`De PCs ontwaken in het bos en ontdekken dat Willowshore overspoeld is door bovennatuurlijk weer (mirage mist, crimson moon) en monsters. Na terugkeer in het dorp, moeten ze de Eternal Lantern heropnieuw ontsteken (3 gezegende munten uit heiligdommen) om de vloek-effecten te stoppen, daarna downtown bevrijden van drie monster-aanvoerders (Gurglegut, Gray Butcher, Mo Douqiu). Vervolgens onderzoeken ze een mysterieuze mist-grens die reizen voorkomt, de verdwijning van gouverneur Heh Shan-Bao (en zijn hele landhuis), en de verdwijning van dorpsbeschermer Ugly Cute (een stenen spin). Het spoor leidt naar een verlaten houtkamp waar noppera-bo's een offerritueel uitvoeren bij de Wall of Ghosts — waar de PCs een eerste glimp opvangen van de ware vijand: de aloude fiend Kugaptee.`,
+  twist:"De PCs beseffen nog niet dat ze zelf al 115 jaar dood zijn en de tijdlus net als de dorpelingen herhalen.",
+  chapters:[
+    {name:"Chapter 1: To Light the Night", pages:"8–25", body:"PCs ontwaken in het bos na de Reenactment Festival-ontvoering, ontdekken het dorp overspoeld door mirage mist / crimson moon en monsters. Contact met beide facties (Old Matsuki / Granny Hu). Diverse zij-quests (Trapped Hunter, Clash at the Clinic, Worst Puzzle). Climax: 3 gezegende koperen munten verzamelen uit heiligdommen en de Eternal Lantern bij Dawnstep Bridge herontsteken na het verslaan van de buso Gurglegut."},
+    {name:"Chapter 2: Reclaiming Willowshore", pages:"26–35", body:"Downtown bevrijden van resterende monsters. Bevrijd gevangenen (Zheng Peng + wachters, Sanmi-familie). Confrontatie met Gray Butcher (bezielde kookgerei-parade) en uiteindelijk Mo Douqiu (rokurokubi, 'brein' van de invasie) in zijn fort, de Cerulean Teahouse."},
+    {name:"Chapter 3: The Willowshore Curse", pages:"36–53", body:"Mysterieuze koopman Shinzo (een vermomde shinigami) duikt op als terugkerende handelaar. PCs proberen nieuws naar Karahai te sturen maar stuiten op een onzichtbare mist-grens rond de hinterlands. Drie sporen: de verdwenen gouverneur (leidt naar Fan Hongrui's thatchling-geest bij Canary Inn — een doodlopend spoor), de mist zelf (Great Willow de kodama helpt de grens in kaart brengen na hulp met een schimmelinfectie/Xungu), en Ugly Cute. Diverse zij-quests en handelsopbouw."},
+    {name:"Chapter 4: The Wall of Ghosts", pages:"54–67", body:"PCs trekken naar het verlaten Lumber Camp (D11), waar noppera-bo's (geleid door Zoudou) een offerritueel uitvoeren bij de Wall of Ghosts met een gegijzelde jongen (Kum Meng-sung, zoon van de stalhouder) als offer. Verstoring van het ritueel onthult kort een enorme schaduw achter de muur — de eerste glimp van Kugaptee. Offergaven transformeren in ondode 'Kugaptee's Blessings'. Einde van het boek: Willowshore's settlement-level stijgt naar 5; 'Kugaptee' en de Wall of Ghosts zijn de hooks voor Boek 2."},
+    {name:"Willowshore Gazetteer & Adventure Toolbox", pages:"68–102", body:"Volledige dorpsbeschrijving (settlement stats, reputatiesysteem Northridge/Southbank), winkel- en heiligdom-NPC's, plus magische items (Willowshore Fulus), monsters (Noppera-bo, Shinigami, Stone Spider, Thatchling) en NPC-statblokken (Granny Hu, Old Matsuki met 'influence'-mechanieken). Sla dit hoofdstuk erbij voor combat-crunch."}
+  ],
+  factions:[
+    {name:"Northridge", leader:"Granny Hu (Hu Ban-niang)", hq:"Trade Office / Ceiba-Duyue Exchange (W21)", color:"north",
+     desc:"Pragmatisch, moderne groei, wantrouwig t.o.v. bovennatuurlijke verklaringen. Wil eerst de barakken/wapenkamer downtown heroveren. Veel Northridgers staan open voor jorogumo-heerschappij."},
+    {name:"Southbank", leader:"Old Matsuki (Matsuki Shou)", hq:"Matsuki Estate (W6)", color:"south",
+     desc:"Traditionalistisch, leeft eenvoudig van het land, gelooft sneller in bovennatuurlijke oorzaken. Ziet jorogumo's principieel als kwaadaardig."}
+  ],
+  npcs:[
+    {name:"Granny Hu (Hu Ban-niang)", role:"Elder/leider Northridge", location:"Trade Office (W21)", faction:"Northridge", desc:"Gepensioneerd keizerlijk wachtkapitein. Pragmatisch en achterdochtig.", secrets:"Rechterhand: Kofusachi-klerk Kim Gu-won. Schoonzoon Zheng Peng is wachtkapitein."},
+    {name:"Old Matsuki (Matsuki Shou)", role:"Elder/leider Southbank", location:"Matsuki Estate (W6)", faction:"Southbank", desc:"Voormalig timmerman-leerling van het Tan Sugi-klooster; zorgzaam, gelooft snel in bovennatuurlijke verklaringen.", secrets:"—"},
+    {name:"Hai-er Ha", role:"Stadswacht, overlevende", location:"Eastern Watchtower", faction:"—", desc:"Bewaakt de oostelijke wachttoren, kan aansluiten bij de party na overtuiging.", secrets:"Zoekt haar dochter (bij Granny Hu) en echtgenoot (bij Matsuki Estate)."},
+    {name:"Choe Chung-hu", role:"Molenaar, organisator Reenactment Festival", location:"Milling Houses (W8)", faction:"Southbank", desc:"Zou de PCs 's ochtends 'vrijkopen' — vermist bij start van het avontuur.", secrets:"—"},
+    {name:"Dr. Damihansig 'Doctor Dami' Mababangloob", role:"Enige dokter in Willowshore", location:"Hand of Spring kliniek (W19)", faction:"neutraal", desc:"Weigert zijn kliniek te verlaten, helpt iedereen gratis tijdens de crisis.", secrets:"Kan dreamtime tea leveren om de buso Gurglegut te drogeren."},
+    {name:"Sumika", role:"Halfelf jager, Silvermist Lodge", location:"Small Farm → sluit aan bij party", faction:"—", desc:"Gered van de jinkin 'Abacus Sisters'; kan aansluiten als bondgenoot.", secrets:"—"},
+    {name:"Gurglegut", role:"Buso, dronken monster-aanvoerder", location:"Dawnstep Bridge", faction:"antagonist", desc:"Bewaakt de brug; kan gedrogeerd/omgekocht worden met wijn.", secrets:"Draagt de 3 originele (ontzegende) munten van de Eternal Lantern."},
+    {name:"Gray Butcher", role:"IJdele ittan-momen (bezielde slagersschort)", location:"Zwervend downtown", faction:"antagonist", desc:"Leidt een parade van bezielde kookgerei; kan tijdelijk vriendelijk gemaakt worden.", secrets:"—"},
+    {name:"Mo Douqiu", role:"Hedonistische rokurokubi, 'brein' van de invasie", location:"Cerulean Teahouse (W25)", faction:"antagonist", desc:"Filosofie: verandering/horror is opwindend. Houdt 12 dorpelingen gegijzeld.", secrets:"Huisdieren: Warty (giant toad), Stingy (cave scorpion), Fluffy Whiskers (wezel)."},
+    {name:"Ugly Cute", role:"Stenen spin, dorpsbeschermer", location:"Zwervend / Gorge of Fangs and Teeth (D10)", faction:"bondgenoot", desc:"Paardgroot, lijkt eerst verdwenen/dreigend maar is een bondgenoot die tegen de monsterinvasie vecht.", secrets:"—"},
+    {name:"Asahina Shinzo", role:"Shinigami vermomd als reizende koopman", location:"Bezoekt Willowshore periodiek", faction:"mysterieus", desc:"In dienst van Pharasma, boet voor een oude overtreding. Verkoopt/haalt items, komt en gaat mysterieus, ontwijkend over herkomst.", secrets:"Metgezel: nosoi psychopomp Yix (vermomd als raaf). Belangrijke terugkerende NPC voor de hele AP."},
+    {name:"Governor Heh Shan-Bao", role:"Verdwenen gouverneur", location:"Onbekend — heel zijn landhuis is verdwenen", faction:"mysterie", desc:"Zijn mislukte ritueel in 7108 veroorzaakte de ramp.", secrets:"Zit gevangen in een eigen parallelle mindscape (onthuld in latere boeken)."},
+    {name:"Fan Hongrui", role:"Rode-kap thatchling, vermomd als zingend kind", location:"Canary Inn ruïne (D4)", faction:"NPC/monster", desc:"Vroeger een gezochte zangeres/rebel tegen Lung Wa, stierf in 7105 in een brand bij een confrontatie met Heh Shan-Bao.", secrets:"Laatste woorden klonken als een vloek — mogelijke (twijfelachtige) link met de latere verdwijning van de gouverneur. Metgezellen: Chi Hongxin & Nanzhe Hongban."},
+    {name:"Great Willow", role:"Kodama-geest in een oude wilg", location:"Great Willow heuvel (W29)", faction:"bondgenoot", desc:"De enige overgebleven kodama in de regio ('The Last Kodama'). Kan de grens van de vloek/mist aftasten.", secrets:"Wordt pas vriendelijk na hulp met een schimmelinfectie (Xungu, D7)."},
+    {name:"Zheng Peng", role:"Wachtkapitein, Granny Hu's schoonzoon", location:"Gevangen in Prison (B4) → Barracks", faction:"Northridge", desc:"Bevrijd door de PCs, geeft toegang tot de armory.", secrets:"—"},
+    {name:"Nadoya Sanmi", role:"Weduwe, familiehoofd", location:"Mudwall House (B11) / Treesparrow's Rest (W15)", faction:"Southbank", desc:"Familie gegijzeld door jinkins.", secrets:"Keurt de relatie tussen haar zoon en Hu Lelong af."},
+    {name:"Yuli Sanmi & Hu Lelong", role:"Geheime geliefden", location:"B11/B12, later Hunter's Hut (D6)", faction:"—", desc:"Yuli = Sanmi-familie, Lelong = Hu-familie (Granny Hu's kleinzoon). Willen samen weglopen.", secrets:"Families zouden de relatie afkeuren."},
+    {name:"Kum Meng-sung", role:"Boerenzoon, gijzelaar bij het ritueel", location:"Lumber Camp / Ritual Site (D12)", faction:"—", desc:"Zoon van stalhouder Kum Soon-chong; wordt door noppera-bo's als offer vastgehouden in Ch4.", secrets:"—"},
+    {name:"Xungu", role:"Myceloid (schimmelwezen), manifestatie van Kugaptee", location:"Infested Grove (D7)", faction:"antagonist", desc:"Doet zich vriendelijk/zielig voor maar probeert PCs op te eten.", secrets:"—"},
+    {name:"Zoudou", role:"Noppera-bo occultist-leider", location:"Lumber Camp ritueel (D11-12)", faction:"antagonist", desc:"Leidt het offerritueel bij de Wall of Ghosts in Chapter 4.", secrets:"—"},
+    {name:"Mago Kai", role:"Lumber baron, wil Willowshore heropbouwen", location:"Fort Karahai (buiten mindscape)", faction:"achtergrond-antagonist", desc:"Werkt voor het spook Chou Mingxia van Sze. Zijn exorcisme-pogingen verstoren onbewust de tijdlus.", secrets:"—"},
+    {name:"Kugaptee", role:"Aloude fiend, bron van de vloek", location:"Achter de Wall of Ghosts", faction:"hoofdantagonist", desc:"Verslagen in 6223 ic door Tan Sui-Jing maar nooit echt vernietigd. Zijn invloed lekt door de mindscape.", secrets:"Pas in Ch4 voor het eerst kort zichtbaar (schaduw)."}
+  ],
+  locations:[
+    {code:"—", name:"Willowshore", desc:"Spookdorp verdeeld in Northridge (noord) en Southbank (zuid), gescheiden door de Ceiba River, verbonden door Dawnstep Bridge. Settlement level 4→5, bevolking 225."},
+    {code:"W6", name:"Matsuki Estate", desc:"Southbank-hoofdkwartier, 'bijna een fort'. Thuis van Old Matsuki."},
+    {code:"W21", name:"Trade Office / Ceiba-Duyue Exchange", desc:"Northridge-hoofdkwartier. Thuis van Granny Hu."},
+    {code:"W11", name:"Dawnstep Bridge & Eternal Lantern", desc:"15e-level magisch item; ontsteken met 3 gezegende koperen munten stopt mirage mist/crimson moon/blood rain."},
+    {code:"W25", name:"Cerulean Teahouse", desc:"Verwoest theehuis, fort van Mo Douqiu. Later mogelijk PC-eigendom via testament van Qing Mai-Lai."},
+    {code:"B1", name:"Governor's Manor (verdwenen)", desc:"Volledig verdwenen — leeg lot. Meegezogen in Heh Shan-Bao's eigen parallelle mindscape."},
+    {code:"D4", name:"Canary Inn (ruïne)", desc:"Afgebrand jaren geleden; nu spookplek van Fan Hongrui en haar thatchling-metgezellen."},
+    {code:"D9", name:"Eyes of Fumeiyoshi", desc:"Twee gitzwarte poelen; bevatten parels nodig voor het testament van de Cerulean Teahouse."},
+    {code:"D10", name:"Gorge of Fangs and Teeth", desc:"Steengroeve waar Ugly Cute zich terugtrok."},
+    {code:"D11", name:"Lumber Camp", desc:"Verlaten houtkamp, nu bezet door noppera-bo's — climax-locatie van Chapter 4."},
+    {code:"D12", name:"Ritual Site", desc:"Bosopen plek doorsneden door de Wall of Ghosts; hier vindt het offerritueel plaats."},
+    {code:"—", name:"Wall of Ghosts", desc:"Ondoordringbare muur van gevangen spookzielen, 50ft hoog, ten westen van Willowshore. Beschermt Kugaptee's graf. Kern-hook voor Boek 2."},
+    {code:"W29", name:"Great Willow", desc:"Heuvel met eeuwenoude wilg waarin de kodama Great Willow huist."}
+  ],
+  mysteries:[
+    "De verdwenen gouverneur — Heh Shan-Bao + heel zijn landhuis spoorloos verdwenen. (Opgelost in latere boeken: gevangen in eigen parallelle mindscape.)",
+    "De mist/vloek-grens — onzichtbare muur rond de hinterlands (~10-16 mijl) die reizen naar Karahai voorkomt.",
+    "Wall of Ghosts — fysieke muur van gevangen zielen ten westen; beschermt Kugaptee's graf (kern van Boek 2).",
+    "Ugly Cute — verdwenen dorpsbeschermer, blijkt bondgenoot."
+  ]
+},
+{
+  id:2, key:"boek2", title:"Let the Leaves Fall", subtitle:"Boek 2 · Level 4–6 · door Joan Hong",
+  color:"#7a9e7e",
+  overview:`Het is de eerste dag van herfst. Willowshore heeft de zomerinvasie overleefd en is nu een niveau 5-nederzetting; een van de twee dorpsoudsten (Granny Hu of Old Matsuki, afhankelijk van wie de PCs steunden) leidt het dorp. De PCs krijgen een dubbele opdracht: het dorp winterklaar maken, en verder zoeken naar de bron van de vloek.
+
+Winterklaar maken draait om drie downtime-tellers — **Hope Points** (moreel), **Food Points** (voedsel) en **Security Points** (verdediging) — die de PCs wekelijks opbouwen via downtime-activiteiten, met 12 punten per categorie als richtwaarde. Tegelijk onderzoeken ze "Kugaptee", de naam uit Zoudou's dagboek (buit uit Boek 1), via de kruidenvrouw You So-Jin, de tovenaar Igawa Jubei en de kodama Great Willow, tot ze genoeg Research Points hebben voor een eigen ritueel: **Open the Wall of Ghosts**.
+
+Ondertussen wordt elke week een dorpsgebeurtenis afgehandeld — eerst onschuldig (een verdwaalde vos, een adderplaag), maar vanaf week 4 steeds vaker bovennatuurlijk en verontrustend: spookhanden, een gestolen lijk, een gezichtsloze schim, een verdrinkingsvloek. Wat de PCs niet weten: elke bovennatuurlijke gebeurtenis is een bijwerking van massa-exorcismes die de houthandelaar Mago Kai in de échte wereld tegen de ruïnes van Willowshore uitvoert — 115 jaar in de toekomst. Elke keer kost dit de PCs 1 Hope Point.
+
+Zodra het Open the Wall of Ghosts-ritueel klaar is, breken de PCs door de mistmuur ten westen van het dorp. Eerst moeten ze een kleine "pocket-mindscape" doorstaan waarin Tan Sui-Jing's gestolen hart moet worden teruggebracht — dit ontgrendelt permanent de doorgang naar het **Pilgrim's Path**, een vierdaagse, tijd-vervormde pelgrimsroute met drie beproevingsschrijnen (Bridge, Garden, Mountain) naar het verwoeste Tan Sugi-klooster.
+
+In het klooster (Hoofdstuk 3) moeten de PCs vier ontheiligde standbeelden zuiveren om toegang te krijgen tot Kugaptee's graf onder de reusachtige Tan Sugi-boom. Elke zuivering laat de gevangen geest van kloosterstichteres Zhi Hui even verschijnen. Uiteindelijk confronteren de PCs Xin Yue — een ooit trouwe monnik die eeuwen geleden overliep naar Kugaptee — diep in het graf zelf, waar ze een groteske profane wedergeboorte doormaakt. Na haar val onthult Zhi Hui de waarheid die het hele boek heeft opgebouwd: Willowshore is niet vervloekt. Het zit al 115 jaar gevangen in een mindscape die zichzelf elk jaar herhaalt, veroorzaakt door gouverneur Heh Shan-Bao's rampzalig mislukte ritueel tegen Kugaptee.
+
+Het boek eindigt niet met opluchting. In week 12 ("Vanishings") wordt voor het eerst in 115 cycli een bewoner van Willowshore permanent geëxorciseerd door Mago Kai's team — de eerste "echte dood" in de mindscape. Die verdwijning, en de vraag wat er met de allang vermiste gouverneur Heh Shan-Bao gebeurd is, vormen de directe aanzet voor Boek 3.`,
+  twist:`Willowshore is niet vervloekt maar gevangen in een 115 jaar oude, zichzelf herhalende mindscape, veroorzaakt door gouverneur Heh Shan-Bao's mislukte ritueel tegen Kugaptee — en de escalerende "spooksels" van Hoofdstuk 1 zijn stuk voor stuk bijwerkingen van echte exorcismes die de houthandelaar Mago Kai, 115 jaar in de toekomst, tegen de ruïnes van Willowshore uitvoert.`,
+  chapters:[
+    {name:"Hoofdstuk 1: Turning of the Seasons", pages:"4-25", body:`Puur downtime-hoofdstuk. De PCs bouwen Hope/Food/Security Points op via wekelijkse activiteiten (teahouse restaureren, oogst binnenhalen, gebouwen verstevigen) en onderzoeken de naam "Kugaptee" tot ze het Open the Wall of Ghosts-ritueel ontgrendelen. Twaalf weekgebeurtenissen lopen parallel, van luchtig (verdwaalde kat, adderplaag) tot steeds sinisterder spookverschijningen — die laatste categorie kost telkens 1 Hope Point en is (onzichtbaar voor de PCs) het werk van Mago Kai's exorcisten in de echte wereld. Culmineert in Week 12: de eerste permanente "verdwijning" van een dorpsbewoner.`},
+    {name:"Hoofdstuk 2: The Enlightened Path", pages:"26-41", body:`Na het ritueel breken de PCs door de Wall of Ghosts, maar belanden eerst in een kleine, 1000 jaar oude pocket-mindscape waar ze het uit haar graf gestolen hart van heldin Tan Sui-Jing moeten terugvinden en terugplaatsen (tegen een wraakzuchtige aasgier en Kugaptee's woedende bosgeest-hazard in). Dat ontgrendelt het echte Pilgrim's Path: vier reisdagen, drie schrijnen (Bridge Shrine met verdronken geesten, Garden Shrine met verbrande schrijnbewaarders, Mountain Shrine met de stormheks Iogaka) onderweg naar het klooster.`},
+    {name:"Hoofdstuk 3: In the Ruins of Wisdom", pages:"42-59", body:`De PCs bereiken het verwoeste Tan Sugi-klooster, nu bevolkt door ondode monniken (kurobozu's) en nindoru-demonen. Vier ontheiligde standbeelden moeten gezuiverd worden om toegang te krijgen tot Kugaptee's graf — elke zuivering laat Zhi Hui's geest even verschijnen om vragen te beantwoorden. Onderweg: de spookzusjes Yuni en "Yeri" (in werkelijkheid een penanggalan), de laatste trouwe monnik Yen Rui in de verborgen bibliotheek, en de tot kurobozu vervallen "Chewer" die aan de wortels van de Tan Sugi-boom knaagt. De climax: Xin Yue in Kugaptee's graf, die na haar dood eerst reïncarneert als sojiruh-nindoru voor het gevecht echt voorbij is. Zhi Hui onthult daarna de volledige waarheid over de mindscape.`},
+    {name:"First Long Night & Sangpotshi (loreartikelen)", pages:"60-71", body:`Twee achtergrondartikelen zonder directe plot-hooks. "First Long Night" beschrijft het herfstequinox-festival van Shenmen (inclusief de drie wedstrijden — Admiring the Moon, Bundle-Cutting, Lantern Making — gebruikt in Week 3 van Hoofdstuk 1). "Sangpotshi" legt de reïncarnatiefilosofie uit die het hele boek thematisch draagt (Zhi Hui, Tan Sui-Jing, Xin Yue en de nindoru-demonen draaien allemaal om verstoorde reïncarnatiecycli).`},
+    {name:"Adventure Toolbox", pages:"72-93", body:`Mechanisch naslagwerk: pelgrimsgeschenken (Item 7-beloningen), een nieuw alchemistisch item (Invigorating Soap), nieuwe spreuken en magische theeën, nieuwe rituelen (waaronder Open the Wall of Ghosts en het vooruitwijzende Winter's Breath voor Boek 3), de nieuwe monsterfamilie Nindoru (Meokdan, Sojiruh, Guhdggi, Ijda) plus Bakeneko en Dalgyal Gwishin, en volledige NPC-statblokken voor Xin Yue en Zhi Hui.`}
+  ],
+  factions:[
+    {name:"Northridge", leader:`Granny Hu (Hu Ban-niang), als PCs haar steunden`, hq:"Trade Office, Willowshore", color:"north", desc:`Northridge-steun geeft de PCs 3 startpunten Security. Reputatie opgebouwd in dit boek werkt door naar Boek 3.`},
+    {name:"Southbank", leader:`Old Matsuki (Matsuki Shou), als PCs hem steunden`, hq:"Matsuki Estate, Willowshore", color:"south", desc:`Southbank-steun geeft de PCs 3 startpunten Food. Welke factie de "dorpsoudste" levert is de belangrijkste doorlopende keuze uit Boek 1.`},
+    {name:"Mago Kai's exorcisten", leader:"Mago Kai", hq:"Het echte, verlaten Willowshore (115 jaar later)", color:"", desc:`Onzichtbare antagonist van dit boek. Vanuit de echte wereld proberen deze exorcisten de "geesten" van Willowshore te verdrijven om de ruïnes te kunnen ontginnen — zonder te beseffen dat elke exorcisme-poging een bovennatuurlijke gebeurtenis in de mindscape veroorzaakt. Wordt pas in Boek 3 als directe dreiging onthuld.`}
+  ],
+  npcs:[
+    {name:"Zheng Peng", role:"Wachtkapitein, trekt de Security Points-lijn", location:"Willowshore Barracks", faction:"Northridge", desc:"Nog steeds nederig na zijn gevangenschap in Boek 1; gedreven om het dorp goed te verdedigen.", secrets:"—"},
+    {name:"Nadoya Sanmi", role:"Eigenares Treesparrow's Rest, trekt de Food Points-lijn", location:"Treesparrow's Rest", faction:"Southbank", desc:"Kundige familiematriarch, bezorgd dat Willowshore altijd op handel leunde en dat nu niet meer kan.", secrets:"—"},
+    {name:"Yami", role:"'Dorpskat' bij de Cerulean Teahouse — in werkelijkheid een bakeneko", location:"Cerulean Teahouse", faction:"—", desc:"Roomkleurige kat met luipaardvlekken; was al bezig te ontwaken tot bakeneko toen de mindscape ontstond en is sindsdien met elke cyclus sterker geworden, al herinnert ze zich de cycli zelf niet.", secrets:"Necromantisch nieuwsgierig: in Week 5 ('The Missing Corpse') animeert ze stiekem het lijk van een overleden buurvrouw tot dansende zombie uit dankbaarheid. Kan bevriend worden (geeft willekeurige geschenken); reageert slecht op dwang."},
+    {name:"Asahina Shinzo", role:"Mysterieuze koopman (in werkelijkheid een shinigami)", location:"Bezoekt Willowshore periodiek, o.a. tijdens First Long Night", faction:"—", desc:"Vriendelijk, raadselachtig, reist met de raaf Yix. Verkoopt tegen 10% korting tijdens First Long Night.", secrets:"Blijft doelbewust vaag over zijn herkomst — het volle verhaal komt pas in Boek 3."},
+    {name:"Minhwan", role:"Jongen die een gewonde vos verzorgde", location:"Willowshore (Week 1)", faction:"—", desc:"Droomt dat de vos een boodschapper van Daikitsu was; vraagt hulp bij het kiezen van een offer.", secrets:"—"},
+    {name:"Matsu", role:"Nerveuze vrijgezel-kok", location:"Zijn huis (Week 2)", faction:"—", desc:"Zijn buitenwc zit vol adders; te verlegen om het meteen te vertellen.", secrets:"Beloont hulp met een etentje én een familie-erfstuk: een fiend bane rune."},
+    {name:"Nakamura Yu Ming ('Mama Bao')", role:"Eigenares steamed-bun-winkel", location:"Haar winkel (Week 4)", faction:"—", desc:"Vindt elke ochtend mensenhaar in haar broodjes.", secrets:"Onbewust slachtoffer van het spook van Hinode Akari — vermoord door Mama Bao's eigen grootvader, die haar haar verkocht aan een poppenmaker om deze winkel te financieren."},
+    {name:"Hinode Akari", role:"Spook, bron van de 'Haunted Hair'-plaag", location:"Mama Bao's winkel", faction:"—", desc:"Jonge vrouw die decennia geleden werd vermoord toen ze op avontuur vertrok.", secrets:"Haar geest werd wakker gemaakt door Mago Kai's exorcismes; ze weet zelf niet dat ze haar eigen moordenaars kleindochter teistert."},
+    {name:"Elizeth Candora", role:"Hoofdpriesteres, Her Fluvial Lady of Souls", location:"Haar tempel (Week 5)", faction:"—", desc:"Meldt een gestolen lijk en verdenkt (ten onrechte) de kruidenvrouw You So-Jin.", secrets:"De echte dader is Yami."},
+    {name:"Ho Jeong-hui", role:"Populaire stadswachter", location:"Zijn huis (Week 6)", faction:"—", desc:"Wordt achtervolgd door een gezichtsloze schim die eigenlijk een dalgyal gwishin (ondode) is.", secrets:"Sterft binnen drie dagen als de PCs de dalgyal gwishin niet verslaan — dan kiest het monster de PC met de hoogste Charisma als volgend doelwit."},
+    {name:"Goh", role:"Visser, gekweld door oud schuldgevoel", location:"Ceiba-rivier (Week 7)", faction:"—", desc:"Liet vijftig jaar geleden zijn broertje verdrinken door onoplettendheid.", secrets:"De 'Icy Grasp' die hem grijpt is zijn eigen schaamte, geen echte wraakzuchtige geest — te ontmantelen met Diplomacy/vergeving even goed als met geweld."},
+    {name:"Kum Soon-chong", role:"Dierenarts, eigenaar Willowshore Stables", location:"De stallen (Week 8)", faction:"—", desc:"Zijn stal vliegt in brand.", secrets:"In de as ligt het skelet van Nin Nok, een eeuwen geleden onthoofde brandstichtster — haar graf blijkt van binnenuit opengegraven, weer een teken van Mago Kai's exorcismes."},
+    {name:"Kimchi", role:"Dorpskat vast in een boom", location:"Willowshore (Week 9)", faction:"—", desc:"Lichte, komische tussendoortje-gebeurtenis.", secrets:"—"},
+    {name:"Kohoshi", role:"Shikigami-kami, bewaakt het Desna-heiligdom", location:"Willowshore", faction:"—", desc:"Een van de ~40 shikigami die in het dorp blijken te wonen — veel meer dan iemand vermoedde.", secrets:"Uitgenodigd (samen met Great Willow) op het Feast of the Kami in Week 10."},
+    {name:"Great Willow", role:"Kodama in de oude wilg bij het dorp", location:"Ten noorden van Willowshore", faction:"bondgenoot", desc:"Bekend uit Boek 1; helpt bij het vloekonderzoek en is eregast op het Feast of the Kami.", secrets:"—"},
+    {name:"Yen Rui", role:"Laatste trouw gebleven monnik van het klooster, nu een lichaamloze aanwezigheid", location:"Hidden Library (E11)", faction:"bondgenoot", desc:"Verhongerde nadat verraders haar opsloten in de bibliotheek; haar magie doordrenkt nu elk boek in de kamer.", secrets:"Vriendelijk en behulpzaam — geeft aanwijzingen over de resterende standbeelden en over Kugaptee's aard."},
+    {name:"Yuni", role:"Spook, oudere zus van 'Yeri'", location:"Klooster-binnenplaats (E2)", faction:"—", desc:"Tien jaar geleden gedood door een tijger van de corrupte monniken terwijl ze haar zus zocht.", secrets:"Kalmeert alleen als de PCs haar Yeri's gebedskralen geven én de waarheid over Yeri's dood vertellen (of overtuigend liegen)."},
+    {name:'"Yeri"', role:"Vermomde penanggalan, Yuni's jongere zus", location:"Holle boom, Forested Path (C2)", faction:"monster", desc:"Ziet er tien jaar na haar dood nog uit als een levend meisje; smeekt om escorte naar het klooster om haar zus te vinden.", secrets:"Bij het vallen van de nacht scheidt haar hoofd van haar lichaam en valt ze aan — ongeacht of de PCs haar helpen of niet."},
+    {name:"Zhi Hui", role:"Stichteres van Willowshore en het klooster, gevangen geest", location:"Verschijnt bij elk gezuiverd standbeeld; woont in Kugaptee's graf (E16)", faction:"gids", desc:"Verschijnt kort na elke statuszuivering om vragen te beantwoorden — elke keer met meer tijd en rust dan de vorige.", secrets:"Onthult na de vierde zuivering en Xin Yue's val de volledige waarheid: Willowshore is een 115 jaar oude, cyclische mindscape veroorzaakt door Heh Shan-Bao's mislukte ritueel."},
+    {name:'"The Chewer"', role:"Ondode kurobozu-monnik die aan de wortels van de Tan Sugi-boom knaagt", location:"E13, onder de grote sugiboom", faction:"antagonist", desc:"Vergat zijn eigen naam en verleden; gelooft dat de boom vellen Tan Sui-Jing's ziel zou bevrijden.", secrets:"Bewaakt (samen met een reuzenspin) het hoofd van het onthoofde Pharasma-standbeeld, verstopt hoog in de boom."},
+    {name:"Kalen Bray", role:"Kleine dief uit Absalom, nu geheugenbehoudende zombie", location:"Storage Room (E14)", faction:"—", desc:"Gevangengenomen vlak voor de mindscape ontstond; heeft 115 cycli 'dood gespeeld'.", secrets:"Liegt over zijn verleden maar wijst, als hij vrijgelaten wordt, de PCs naar zijn verstopte buit (E8)."},
+    {name:"Xin Yue", role:"Gecorrumpeerde monnik, ondode hogepriesteres van Kugaptee — eindbaas van dit boek", location:"Kugaptee's graf (E16)", faction:"hoofdantagonist", desc:"Ooit Zhi Hui's naaste volgeling; na haar dood in 7054 langzaam vergiftigd door verdriet en Kugaptee's fluisteringen. Offerde zichzelf op en herrees voor de ogen van de andere monniken — het bewijs, in hun ogen, dat het klooster een 'kooi-tombe van macht' was, geen plek van stille bezinning.", secrets:"Wil Kugaptee volledig laten reïncarneren via de Tan Sugi-boom (Tan Sui-Jing's lichaam); reïncarneert zelf één keer als sojiruh-nindoru zodra ze in het eerste gevecht valt."},
+    {name:"Tan Sui-Jing", role:"Legendarische heldin, versloeg Kugaptee ~1000 jaar geleden", location:"Gereïncarneerd als de Tan Sugi-boom (E13); haar lijk/echo verschijnt in de pocket-mindscape (A2)", faction:"—", desc:"Haar ziel hield (en houdt) Kugaptee gevangen door letterlijk de boom te worden die over zijn graf groeit.", secrets:"In de pocket-mindscape moeten de PCs haar door een aasgier gestolen hart terugbrengen om haar rustig te leggen en de weg naar het Pilgrim's Path te openen."},
+    {name:"Enko", role:"Kappa, door Iogaka gepest en ver van huis gedropt", location:"Forested Path (B1), eerste dag van het Pilgrim's Path", faction:"—", desc:"Kruipt op 5 voet snelheid terug naar Mirror Lake met een lege kop-kom.", secrets:"Waarschuwt de PCs voor Iogaka's zwakte: brandende wierook."},
+    {name:"Iogaka", role:"Stormheks, houdt de Mountain Shrine bezet", location:"Mountain Shrine (D3)", faction:"antagonist", desc:"Veroorzaakt zelf de storm die de hele reis over het Pilgrim's Path teistert; ziet de schrijn als haar persoonlijke domein.", secrets:"Sterk verzwakt door brandende wierook (sickened/slowed); haar dood beëindigt de storm binnen het uur."},
+    {name:"Kugaptee", role:"Aloude fiend, wil reïncarneren via de Tan Sugi-boom", location:"Begraven onder de boom, Kugaptee's Grave (E16)", faction:"hoofdantagonist campagne", desc:"Blijft dit hele boek onzichtbaar op stemmen, gefluister en manifestaties na (bloedrode vlinders, een monsterlijke schaduwvorm bij Xin Yue's val).", secrets:"Zijn onmiddellijke dreiging wordt aan het eind van dit boek afgewend, maar zijn invloed op de mindscape blijft — de ware aard van de dreiging wordt pas in latere boeken duidelijk."}
+  ],
+  locations:[
+    {code:"—", name:"Cerulean Teahouse", desc:"De PCs' nieuwe basis, gerestaureerd sinds Boek 1. Thuis van Yami. Hier vindt ook het Feast of the Kami in Week 10 plaats."},
+    {code:"—", name:"Willowshore Trade Office", desc:"Waar de dorpsoudste, Zheng Peng en Nadoya Sanmi de PCs elke keer bijpraten."},
+    {code:"—", name:"Willowshore Stables", desc:"Kum Soon-chong's dierenkliniek; vliegt in brand in Week 8, onthult het graf van Nin Nok."},
+    {code:"—", name:"Bones of the Forgotten", desc:"Kerkhof ten noordwesten van het dorp; Nin Nok's ongemarkeerd graf blijkt van binnenuit opengegraven."},
+    {code:"A", name:"Wall of Ghosts", desc:"50 voet hoge muur van kolkende mist en gevangen spookzielen ten westen van Willowshore. Opengebroken met het Open the Wall of Ghosts-ritueel; enige doorgang is het Pilgrim's Path."},
+    {code:"A1-A3", name:"Within the Wall of Ghosts (pocket-mindscape)", desc:"Kleine, ~1000 jaar oude mindscape die het gebied toont vlak na Tan Sui-Jing's dood tegen Kugaptee. Bevat haar graf (A2) en het Soulthief's Nest (A3) van de hart-etende aasgier. Moet ontgrendeld worden voor toegang tot het echte Pilgrim's Path."},
+    {code:"—", name:"Pilgrim's Path", desc:"Vaste, tijd-vervormde vierdaagse pelgrimsroute van Willowshore naar het Tan Sugi-klooster, met drie schrijnen onderweg (Bridge/Garden/Mountain). Reistijd ligt vast ongeacht snelheid; van het pad afwijken brengt je terug op het pad."},
+    {code:"B3", name:"Bridge Shrine", desc:"Zeshoekige pagode over een touwbrug bij Mirror Lake. Gehaunt door verdronken zielen (Arms of the Drowned) en broedbloedzuiger-zwermen."},
+    {code:"C3", name:"Garden Shrine", desc:"Deels afgebrande hut waar vier ondode schrijnbewaarders (Combusted) ronddwalen — omgekomen toen woodcutter-ondoden de schrijn in 7062 in brand staken."},
+    {code:"D3", name:"Mountain Shrine", desc:"Waterval-schrijn hoog in de bergen, bezet door de stormheks Iogaka; enige toegang via een vlot over een stormachtig meer."},
+    {code:"—", name:"Tan Sugi Monastery", desc:"Het bouwvallige klooster rond de honderd voet hoge Tan Sugi-boom, gebouwd op Kugaptee's graf. Nu bevolkt door ondode monniken (kurobozu's) en nindoru-demonen. Decor van heel Hoofdstuk 3."},
+    {code:"E2", name:"Courtyard", desc:"Overwoekerde binnenplaats met vervuilde vijver; hier spookt Yuni. Bevat een van de vier te zuiveren standbeelden (kodama)."},
+    {code:"E3", name:"Main Hall", desc:"Open hal met een levensgroot stenen boomstandbeeld (te zuiveren) dat tot leven komt als haunt ('Kugaptee's Tree')."},
+    {code:"E5", name:"Pharasma's Shrine", desc:"Onthoofd Pharasma-standbeeld (te zuiveren) — het hoofd ligt verstopt hoog in de Tan Sugi-boom (E13), bewaakt door The Chewer en een reuzenspin."},
+    {code:"E9", name:"Dorms", desc:"Voormalige slaapzalen van de monniken, nu het nest van een guhdggi-nindoru omringd door vleiende meokdans."},
+    {code:"E11", name:"Hidden Library", desc:"Verborgen bibliotheek waar Yen Rui's magische aanwezigheid huist — de belangrijkste lore-bron van het klooster."},
+    {code:"E12", name:"Burial Garden", desc:"Vier plantenbakken waarin overleden monniken traditioneel begraven werden; bevat een van de vier te zuiveren standbeelden (hert), nu overwoekerd door kwaadaardige fungus-leshy's."},
+    {code:"E13", name:"The Tan Sugi", desc:"De honderd voet hoge, gereïncarneerde vorm van Tan Sui-Jing, groeiend boven Kugaptee's graf. Sterft tegen midwinter als de PCs niets doen — Kugaptee's ontsnapping zou de hele mindscape vernietigen."},
+    {code:"E14", name:"Storage Room", desc:"Gruwelijke kelder vol lichaamsdelen van slachtoffers; hier zit de dief Kalen Bray gevangen als ondode zombie."},
+    {code:"E16", name:"Kugaptee's Grave", desc:"De climax-locatie: een grot met vijf reusachtige stenen vingers die uit de grond steken en bloedachtige vloeistof afgeven. Hier vindt de eindstrijd tegen Xin Yue plaats."}
+  ],
+  mysteries:[
+    "Wat is de ware aard van de 'vloek'? Opgelost aan het eind van dit boek: het is geen vloek maar een 115 jaar oude, cyclische mindscape.",
+    "Wat is er met gouverneur Heh Shan-Bao gebeurd, en waar is hij nu? Nog steeds open — hoofdmysterie van Boek 3.",
+    "Wie of wat veroorzaakt de escalerende wekelijkse spooksels? Geheim voor de PCs: het zijn bijwerkingen van Mago Kai's exorcismes in de echte wereld — onthuld pas in Boek 3.",
+    "Wat is Shinzo werkelijk? Nog vaag aangeduid als shinigami, maar zijn volledige verhaal komt in Boek 3.",
+    "Hoe kunnen de PCs (en heel Willowshore) definitief aan de mindscape ontsnappen? Zhi Hui vermoedt dat het antwoord bij Heh Shan-Bao ligt.",
+    "Waar ging de ziel van de in Week 12 'verdwenen' bewoner echt heen? Ze belandt in een verborgen, tweede mindscape 'achter' die van Willowshore — nog niet uitgelegd aan de PCs, kern van Boek 3."
+  ]
+},
+{
+  id:3, key:"boek3", title:"No Breath to Cry", subtitle:"Boek 3 · Level 7–9 · door Dan Cascone en Eleanor Ferron",
+  color:"#8b6bb8",
+  overview:`Het is de eerste dag van winter. Terwijl de PCs terugkeren van het klooster, vallen Mago Kai's exorcisten voor het eerst agressief de échte, verwoeste ruïnes van Willowshore aan — 115 jaar in de toekomst. Hun rituelen 'lekken' de mindscape in als rode rook: het Cloud Paper House stort gedeeltelijk in (met drie NPCs te redden), corrupte natuurenergie manifesteert als twee waldgeisten, en elke PC krijgt te maken met een eigen schaduw-echo uit de toekomst. Voor het eerst vangen de PCs een glimp op van een van de exorcisten zelf — een glimp die pas veel later hun ware aard onthult.
+
+Onderzoek naar de mindscape (met de buit uit het klooster) leidt de PCs naar het ritueel **mindscape shift**, waarmee ze Heh Shan-Bao's eigen, kleinere parallelle mindscape kunnen betreden. Wat ze daar aantreffen is een Willowshore dat een dag lang doet alsof niets mis is — vriendelijke dorpelingen die de PCs niet herkennen — tot het bij zonsondergang instort in stilte, dwalende dorpelingen en een tocht naar het landhuis. De gouverneur zelf is een gebroken man die de PCs voor kwaadaardige geesten aanziet en op de vlucht slaat (een uitgebreide achtervolging door de stad). Eenmaal gevangen of overtuigd, onthult Heh Shan-Bao de kern van het hele boek: iedereen in Willowshore is al 115 jaar dood. Zijn mislukte ritueel om Kugaptee te verzegelen liet hem volledig door de demon verslinden; wat rest is slechts het laatste restje van zijn paniekerige bewustzijn. Hij geeft de PCs zijn levenswerk door — onvolledige aantekeningen voor een **transmigratie-ritueel** — en sterft, waarna zijn mindscape uiteenvalt in een golf van nabootsende noppera-bo's.
+
+Terug in Willowshore onthult de terugkerende koopman Shinzo eindelijk zijn ware aard: hij is een shinigami die al 108 jaar over de stad waakt en de PCs alles vertelt — ze zijn dood, de jorogumo Lang Loi regeert nu Shenmen, en de "spookjager" achter alles heet Mago Kai, een houthandelaar die de ruïnes van Willowshore wil ontginnen zodra de geesten verdreven zijn. De rest van de winter (Hoofdstuk 2) is een lange overlevingstocht gedragen door het vertrouwde Hope/Food/Security-puntensysteem, doorspekt met dertien sfeergebeurtenissen — de geredde kitsune-geest Rin, de eenzame silsyche Tenon, het Claylight-festival, een theeceremonie met vier kritische nosoi-psychopompen, een gedwongen seance met Mago Kai's exorcisten (waar voor het eerst blijkt dat een van hen, Fenfang, iets verbergt), en het beangstigende bezoek van de zichzelf overschattende jorogumo-'prinses' Ren Mei Li — terwijl de PCs ondertussen bouwen aan het transmigratie-ritueel (een oven, reigerveren, weken werk aan sakaki-planken).
+
+In Hoofdstuk 3 voltrekken de PCs eindelijk het ritueel en belanden, na een kort tussenstation vol kagekuma-nindoru's, echt in de levende wereld: als tijdelijke, spookachtige lichamen tussen de werkelijke ruïnes van Willowshore, 115 jaar later. Ze trekken naar het kustfort Karahai om de gestolen vlam van de Eeuwige Lantaarn terug te halen — gestuurd door een Terror Points-systeem dat bepaalt hoe waakzaam het fort wordt. Een uitgebreide verkenning van het fort onthult niet alleen Mago Kai's plannen, maar ook de grootste twist van het boek: de "Fenfang" die de PCs al kennen is allang vermoord en vervangen door een akashti-nindoru die stiekem een sekte binnen de exorcisten runt, met als lokaas een vervalste visioen van de heldin Tan Sui-Jing. De climax biedt een keuze — Mago Kai bevechten of overtuigen om vreedzaam te vertrekken — waarna de PCs de gestolen vlam terugbrengen en het laatste, machtigere transmigratie-ritueel kunnen voorbereiden dat heel Willowshore (niet alleen henzelf) terug naar het leven kan brengen.`,
+  twist:`De PCs en heel Willowshore zijn al 115 jaar dood en bestaan als geesten in een mindscape geschapen door Heh Shan-Bao's mislukte ritueel tegen Kugaptee — en de "spookjagers" die hen achtervolgen zijn in werkelijkheid levende exorcisten onder leiding van houthandelaar Mago Kai, 115 jaar in de toekomst. Onderweg blijkt bovendien dat een van die exorcisten, Fenfang, is vermoord en vervangen door een akashti-nindoru die stiekem een geheime sekte binnen Mago Kai's team runt.`,
+  chapters:[
+    {name:"Hoofdstuk 1: Oblivion of Truth", pages:"4-21", body:`Opent met 'Red Smoke, Gold Eyes': een exorcisme in de echte wereld sijpelt door in de mindscape als een instorting van het Cloud Paper House (drie NPC's redden — Aruka, Yu Er en haar pop Mr. Jelly, de bewusteloze Zhen Luoyang — tegen twee spiritual-disruptor hazards in), gevolgd door twee corrupte waldgeisten en, tien minuten later, een eigen schaduw-echo per PC ('Tomorrow's Shadows'). Onderzoek naar de mindscape ontgrendelt het ritueel mindscape shift. De PCs betreden Heh Shan-Bao's eigen, kleinere parallelle mindscape — een Willowshore dat overdag doet alsof niets mis is maar 's nachts instort in een stille optocht van dorpelingen naar het gewarde landhuis. Een achtervolging door de stad (Governor's Manor-chase) eindigt met een confrontatie: de gebroken gouverneur onthult dat iedereen al 115 jaar dood is, geeft de PCs zijn onvolledige transmigratie-aantekeningen, en sterft — waarna zijn lichaam uiteenspat in bloedrode vlinders en noppera-bo-nabootsers van de PCs zelf aanvallen.`},
+    {name:"Hoofdstuk 2: Face-to-Face with Death", pages:"22-45", body:`Een lang, week-voor-week winterhoofdstuk gedragen door het Hope/Food/Security-puntensysteem. Shinzo onthult zijn ware aard als shinigami en vertelt de volle waarheid: de PCs herhalen hun jaar al 115 keer, jorogumo-koningin Lang Loi regeert nu Shenmen, en houthandelaar Mago Kai plant Willowshore's ruïnes te ontginnen zodra de spoken verdreven zijn. De PCs bouwen het transmigratie-ritueel op (oven, reigerveren, weken werk aan sakaki-planken) terwijl dertien gebeurtenissen de winter vullen: de geredde kitsune-geest Rin, de eenzame silsyche Tenon in een verlaten boerderij, het Claylight-festival, een theeceremonie met vier kritische nosoi-psychopompen, een gedwongen seance met Mago Kai's exorcisten (eerste hint dat exorcist Fenfang iets verbergt), en het gevaarlijke bezoek van de zelfoverschattende jorogumo-'prinses' Ren Mei Li tijdens de winterzonnewende. Eindigt met het voltrekken van het 4e-graads transmigratie-ritueel via een kort tussenstation vol kagekuma-nindoru's.`},
+    {name:"Hoofdstuk 3: This Place Is Ours", pages:"46-61", body:`De PCs arriveren als tijdelijke spookachtige lichamen in de echte, 115 jaar verlaten ruïnes van Willowshore en trekken naar het kustfort Karahai om de gestolen vlam van de Eeuwige Lantaarn terug te halen, gestuurd door een Terror Points-systeem. Een uitgebreide verkenning van het ronde aarden fort (22 gebieden) onthult exorcisten, huurlingen, drie schrijnmaagden, een gevangen onschuldige shimmerthief, de opgesloten dorpeling Hu Deming, en — de grote onthulling — dat 'Fenfang' allang vermoord is en vervangen door een akashti-nindoru die een geheime cultus runt met een vervalst visioen van Tan Sui-Jing als lokaas. De climax biedt een keuze: Mago Kai bevechten in zijn tuin, of hem overtuigen zich terug te trekken. Na het uitschakelen van de waarschuwingsbel en het terugbrengen van de vlam naar de Eeuwige Lantaarn kunnen de PCs bij het begin van het nieuwe jaar het machtigere, 5e-graads transmigratie-ritueel voorbereiden — dat niet alleen henzelf, maar mogelijk heel Willowshore terug naar het leven kan brengen.`},
+    {name:"Appendices: Cycles of Destruction & Worlds within the Mind", pages:"62-73", body:`Twee achtergrondartikelen zonder directe plot-hooks. 'Cycles of Destruction' vertelt de oorsprongsmythe van de nindoru-fiends via de gevallen samsaran Sigek, die de lich Nindoru verried en zelf een nindoru-halfgod werd — Kugaptee is een van drie bekende 'Ascetics' uit dit ras. 'Worlds within the Mind' legt de algemene spelregels voor mindscapes uit (ankers, kennis, emotie, 'ripples') — nuttige GM-achtergrond, geen verhaalinhoud.`},
+    {name:"Adventure Toolbox", pages:"74-93", body:`Mechanisch naslagwerk: nieuwe rituelen (mindscape shift, transmigrate), Heroic Legacies (vier magische geschenken van Shinzo als vervanging voor gewone loot), de tijdelijke 'Haunting the Living'-spookkrachten voor Hoofdstuk 3, monsterstatblokken (Akashti, Kagekuma, Noppera-bo Impersonator, Shimmerthief, Silsyche) en volledige NPC-uitwerkingen van Heh Shan-Bao en Mago Kai.`}
+  ],
+  factions:[
+    {name:"Northridge", leader:"—", hq:"Willowshore (stedelijk deel)", color:"north", desc:`Overgenomen uit Boek 1-2. Reputatie kan dit boek nog stijgen of dalen via Preparation Points en losse gebeurtenissen.`},
+    {name:"Southbank", leader:"—", hq:"Willowshore (landelijk deel)", color:"south", desc:`Overgenomen uit Boek 1-2, zelfde mechaniek als Northridge.`},
+    {name:"Mago Kai's exorcisten", leader:"Mago Kai", hq:"Karahai (kustfort)", color:"", desc:`Levende houthandelaar-huurlingenband, 115 jaar na de val van Willowshore, die de geesten van de stad wil verdrijven om de ruïnes als houtkapbasis te gebruiken. Bevat onwetend een geheime nindoru-cultus (rond de vermomde 'Fenfang') binnen de eigen gelederen.`},
+    {name:"Jorogumo-hof van Lang Loi", leader:"Lang Loi", hq:"Shenmen (regionale hoofdmacht)", color:"", desc:`De spinnenvrouwen die inmiddels heel Shenmen regeren en cijns eisen. Hofdame Ren Mei Li bezoekt Willowshore's mindscape als een onbewuste psychische kopie van zichzelf — de echte Ren Mei Li keert pas in Boek 4 terug.`}
+  ],
+  npcs:[
+    {name:"Heh Shan-Bao", role:"Vermiste gouverneur van Willowshore", location:"Zijn eigen afgezonderde parallelle mindscape / landhuis", faction:"—", desc:"Verfomfaaide, getraumatiseerde bureaucraat, wanhopig beschermend over zijn kat Black Bean, balancerend tussen hysterie en wanhoop.", secrets:"Enige inwoner die beseft dat iedereen dood is; werkte 115 cycli lang (zonder het te onthouden) in het geheim aan een transmigratie-ritueel. Zijn falen tegen Kugaptee veroorzaakte de mindscapes; hij werd volledig door de fiend verslonden. Sterft na het overdragen van zijn onderzoek; zijn ziel wordt daarna Kugaptee's gevangene (hook voor Boek 4)."},
+    {name:"Black Bean", role:"Heh Shan-Bao's kat", location:"Gouverneurswoning, later Willowshore-mindscape", faction:"—", desc:"Angstig, aanhankelijk klein zwart katje.", secrets:"Wordt teruggevonden opgesloten in een kast in de verwoeste gouverneurswoning — emotionele afsluiting van zijn stervende smeekbeden."},
+    {name:"Asahina Shinzo", role:"Reizende koopman — in werkelijkheid een shinigami (dodengod)", location:"Bezoekt Willowshore periodiek", faction:"gids", desc:"Vriendelijk, raadselachtig, reist met de raaf Yix. Staat al 108 jaar vigilerend over Willowshore, 7 jaar na de dood van de stad gearriveerd.", secrets:"Onthult de volledige waarheid: de PCs zijn dood, Lang Loi regeert nu Shenmen, Mago Kai is de vijand. Boet voor een oude overtreding tegen Pharasma waarover hij vaag blijft. Merkbaar méér betrokken bij het lot van de PCs dan een onpartijdige dodengod zou moeten zijn — een spanning met zijn eigen begeleider Yix."},
+    {name:"Yix", role:"Shinzo's raafgezel — een nosoi psychopomp", location:"Bij Shinzo", faction:"—", desc:"Functioneert als 'oppasser' die Shinzo behoedt voor het overschrijden van zijn grenzen.", secrets:"—"},
+    {name:"Myna Kawaka", role:"Tengu-gildeleider, eigenaar Cloud Paper House", location:"Cloud Paper House / later zijn verlaten ouderlijke boerderij", faction:"—", desc:"Genereuze werkgever; beloont het redden van zijn personeel rijkelijk.", secrets:"Na de instorting van zijn molen trekt hij in zijn verlaten jeugdboerderij, waar de eenzame geest Tenon hem verontrustend/instabiel gedrag laat vertonen."},
+    {name:"Aruka", role:"Kitsune, medewerker van Myna Kawaka", location:"Cloud Paper House, later terugkerend", faction:"—", desc:"Gered uit het instortende pakhuis; wordt daarna een terugkerende NPC die zich zorgen maakt om Kawaka's welzijn.", secrets:"—"},
+    {name:"Rin", role:"Jonge kitsune-geest, betrapt op het verbranden van jachtvallen", location:"Bossen rond Willowshore", faction:"—", desc:"Half-wild meisje met een verschroeide vosjongen (haar broertje Yuu) in haar armen; wantrouwig naar mensen, speels zodra ze ontdooit.", secrets:"Stierf samen met Yuu toen een rivaliserend dorp hun berghuis platbrandde uit bijgeloof. Kan uiteindelijk in Willowshore komen wonen en levert dan wekelijks Hope Points op."},
+    {name:"Tenon", role:"Silsyche (eenzame spookgeest), huist in Kawaka's verlaten ouderlijk huis", location:"Verlaten boerderij ten zuiden van de stad", faction:"—", desc:"Wanhopig eenzaam, emotioneel wispelturig, niet gewelddadig tenzij in het nauw gedreven (en herrijst dan na een paar dagen toch weer).", secrets:"Wil enkel gezelschap en iemand die het huis onderhoudt zodat hij niet vervaagt als het instort. Geeft, indien bevriend, Kawaka's verstopte +1 thundering shortbow."},
+    {name:"Cao Chen", role:"Leidend exorcist van Mago Kai's team", location:"Karahai, de Shrine (C11) en zijn kamer (C17)", faction:"antagonist", desc:"Kalende, middelbare man; methodisch, professioneel toegewijd, niet wreed maar pragmatisch.", secrets:"Gefascineerd door de gevangen shimmerthief. Als hij tijdens de Seance voldoende beïnvloed wordt (Influence 4+), herkent hij de PCs later en is bereid te praten in plaats van te vechten — maar verraadt Mago Kai niet."},
+    {name:"Pan Fenfang / de vermomde akashti-nindoru", role:"Exorcist met een geheim — in werkelijkheid vermoord en vervangen", location:"Karahai, opslagruimte (C14) en haar kamer (C16)", faction:"antagonist", desc:"Draagt een oud litteken op haar rechterwang; nerveus tijdens de Seance.", secrets:"De échte Fenfang werd vermoord door Kugaptee's invloed nadat ze in het geheim tegen haar eigen groeiende corruptie vocht. Een akashti-nindoru nam haar identiteit over en runt nu een geheime sekte binnen de exorcisten met een vervalst visioen van 'Tan Sui-Jing' (in werkelijkheid een Kugaptee-projectie) als lokaas. Bewaart de echte Fenfang's schedel als trofee in haar bed-oven."},
+    {name:"Sha 'Shagua' Guanghao", role:"Jonge, onervaren exorcist", location:"Karahai, badruimte (C13)", faction:"—", desc:"Bluffend maar onschuldig en makkelijk te overtuigen; vecht dom door tot de dood als aangevallen ondanks duidelijk kansloos te zijn.", secrets:"Herkent de PCs (en praat vrijer) als hij tijdens de Seance voldoende beïnvloed werd."},
+    {name:"Hu Deming", role:"Gevangen visverkoper uit Karahai-dorp", location:"Karahai, gevangenis (C19)", faction:"—", desc:"Grofgebekt, komisch, maar oprecht nuttig zodra zijn vertrouwen (of angst) gewonnen is.", secrets:"Zit vast omdat hij een vis naar Mago Kai gooide uit protest tegen zijn uitzetting; vermoedt terecht dat er 'iets kwaadaardigs' onder de exorcisten schuilt (Fenfang's sekte)."},
+    {name:"Mago Kai", role:"Houthandelaar, leider van de exorcisten — hoofdantagonist van dit boek", location:"Karahai, tuin (C22) en zijn kamer (C20)", faction:"hoofdantagonist", desc:"Trots, imagobewust maar niet wreedaardig; houdt van rust, romans en thee; vecht liever met woorden dan met zijn bijl, maar aarzelt niet als geprovoceerd.", secrets:"Wil Willowshore's ruïnes ontginnen om aan gouverneur Chou Mingxia's eisen te voldoen. Weet niet dat een van zijn exorcisten (Fenfang) vervangen is door een nindoru, noch dat zijn schrijnmaagden een eigen agenda hebben (een toekomstige Pharasma-tempel). Kan vreedzaam overtuigd worden of verslagen worden in gevecht."},
+    {name:"Ren Mei Li", role:"Zelfbenoemde 'jorogumo-prinses' (mindscape-kopie)", location:"Bezoekt Willowshore rond de winterzonnewende", faction:"antagonist", desc:"Wrede, hooghartige jorogumo die wreedheid als spel ziet; in het geheim onzeker over haar status onder haar 'zusters'.", secrets:"Is een onbewuste psychische kopie van de échte Ren Mei Li, gemaakt toen die laatste occult onderzoek deed in de echte ruïnes van Willowshore. De echte versie keert in Boek 4 terug — hoe de PCs deze ontmoeting afhandelen, geeft een voordeel dan."},
+    {name:"Yamaguchi, Sakaguchi, Iguchi, Noguchi", role:"Vier nosoi psychopompen", location:"Willowshore, na Hoofdstuk 1", faction:"—", desc:"Verschijnen als kraaien met groengloeiende ogen; 'collega's' van Yix, maar zonder Shinzo's sympathie voor de PCs.", secrets:"Overwegen aanvankelijk om Mago Kai's exorcisten te helpen. Een succesvolle theeceremonie ('Nosois' Brunch') wint ze over — mislukking betekent later hun hulp aan de exorcisten in Karahai (C9)."},
+    {name:"Kugaptee", role:"Aloude fiend, bron van de vloek (blijft grotendeels op de achtergrond)", location:"Begraven onder de Tan Sugi-boom", faction:"achtergrond-hoofdantagonist", desc:"Manifesteert dit boek vooral via manipulatie (de valse 'Tan Sui-Jing'-visioenen) en achtergronddreiging, niet in direct gevecht.", secrets:"Blijft ondanks Boek 2 nog springlevend als corrumperende invloed — zijn ultieme lot wordt pas in Boek 4 beslecht."}
+  ],
+  locations:[
+    {code:"—", name:"Cloud Paper House", desc:"Papierfabriek aan Woodraft Lake, decor van de openingscrisis 'Red Smoke, Gold Eyes' — instortende bebouwing, twee spiritual-disruptor hazards, twee waldgeisten."},
+    {code:"—", name:"Heh Shan-Bao's mindscape / Governor's Manor", desc:"Kleinere, aparte mindscape die alleen Willowshore's stadsgrenzen beslaat. Gebouwen die de PCs herstelden of vernietigden in hun eigen mindscape zijn hier ongewijzigd. Het landhuis is bewaakt door machtige 'Manor Wards' die spoken/ondoden buitensluiten."},
+    {code:"A1-A3", name:"Between Life and Death (tussenmindscape)", desc:"Kleine, gesloten mindscape die de PCs doorkruisen tijdens het casten van transmigrate — een 'kruimelvanger' voor zielen die Kugaptee niet volledig heeft opgeslokt. Bevat een ritueelaltaar en drie kagekuma-nindoru's."},
+    {code:"—", name:"Willowshore (echte ruïnes, 115 jaar later)", desc:"Overwoekerd, ingestort, verlaten. Dawnstep Bridge staat nog net overeind; de Eternal Lantern is onverlicht en mist zijn brandstofreservoir (gestolen door Mago Kai). Hier vinden de PCs de verbrijzelde resten van Ugly Cute."},
+    {code:"—", name:"Karahai (dorp + fort)", desc:"Klein kustdorp aan de Zee van Spoken met een rond, aarden fort in het midden — Mago Kai's basis. Vier poorten (Water/Metaal/Vuur/Hout), 22 genummerde binnenruimtes (C1-C22). Bewaakt door een magische waarschuwingsbel (C11) die spoken buitensluit."},
+    {code:"C4", name:"Stables", desc:"Huisvest twee paarden en een gevangen, gemuilkorfde shimmerthief — een onschuldig, hondachtig wezen dat alleen Draconic spreekt en door niemand in het fort begrepen wordt."},
+    {code:"C11", name:"Shrine (waarschuwingsbel)", desc:"Bevat de grote bronzen waarschuwingsbel, gesmeed uit de gestolen brandstofcontainer van Willowshore's Eeuwige Lantaarn — houdt spoken uit het fort. Hier vond ook de Seance (Hoofdstuk 2) plaats."},
+    {code:"C14", name:"General Storage", desc:"Hier belasteren de PCs (indien onopgemerkt) het gesprek waarin de vermomde Fenfang een andere exorcist rekruteert voor haar geheime sekte."},
+    {code:"C19", name:"Jail", desc:"Cel van de gevangen dorpeling Hu Deming."},
+    {code:"C20", name:"Kai's Quarters", desc:"Luxueuze privékamer van Mago Kai; bevat zijn plannen voor Willowshore's ruïnes en twee bezielde bewakingsbijlen."},
+    {code:"C22", name:"Garden", desc:"Mago Kai's favoriete rustplek — hier wordt hij meestal alleen aangetroffen, en hier speelt zich de climax van het boek af: gevecht of vreedzame overeenkomst."}
+  ],
+  mysteries:[
+    "Wat er werkelijk met Heh Shan-Bao gebeurde: hij overleefde niet als bevrijde geest maar werd volledig door Kugaptee verslonden — zijn mindscape is slechts het laatste restje van zijn bewustzijn. Opgelost in dit boek.",
+    "Wie of wat de PCs achtervolgt: onthuld als levende exorcisten onder leiding van houthandelaar Mago Kai, 115 jaar in de toekomst.",
+    "Wat Shinzo werkelijk is: een shinigami die al 108 jaar over Willowshore waakt en boet voor een oude overtreding tegen Pharasma — details blijven vaag.",
+    "Wie 'Fenfang' echt is: de originele exorcist is vermoord en vervangen door een akashti-nindoru die een geheime sekte runt met een vervalst Tan Sui-Jing-visioen als lokaas — grotendeels onopgemerkt door zowel Cao Chen als Mago Kai.",
+    "Wat er met de gestolen vlam van de Eeuwige Lantaarn gebeurde: omgesmeed tot de waarschuwingsbel-klepel in Karahai — teruggehaald aan het eind van dit boek.",
+    "Hoe de PCs (en heel Willowshore) definitief kunnen terugkeren naar het leven: het 5e-graads transmigratie-ritueel is klaar om gecast te worden bij het begin van het nieuwe jaar — hoofdvraag voor Boek 4.",
+    "Wat de echte Ren Mei Li in petto heeft: de PCs ontmoetten slechts een onbewuste psychische kopie; de échte jorogumo-prinses keert terug in Boek 4."
+  ]
+},
+{
+  id:4, key:"boek4", title:"To Bloom Below the Web", subtitle:"Boek 4 · Level 10–12 · door Liane Merciel",
+  color:"#b0895b",
+  overview:`Het is de eerste dag van lente. De PCs ontwaken bij de herontstoken Eeuwige Lantaarn — niet meer in een mindscape, maar in de échte, levende wereld. Willowshore keert terug (de mate waarin hangt af van hoeveel Preparation Points er over waren uit Boek 3), maar het landhuis van gouverneur Heh Shan-Bao komt eveneens terug: een verwoeste ruïne bewoond door monsters uit Kugaptee's resterende invloed, waaronder een akashti-nindoru die zich voordoet als een levende, vriendelijke Heh Shan-Bao om de PCs te vermoorden. Zodra dat "vals bewijs" verslagen is, kan het dorp zich richten op wederopbouw: de vernielde Karahai-brug herstellen (tegen tegenwerking van de Silkwasp Bandits in, geleid door de charismatische Lo Kuon maar in werkelijkheid gecontroleerd door de jiang-shi-vampier Hong Meigui) en weer aansluiting vinden bij het moderne Shenmen — dat inmiddels al meer dan een eeuw onder jorogumo-heerschappij staat.
+
+In Hoofdstuk 2 neemt de jorogumo-hofdame Ren Mei Li — ditmaal de échte, in levenden lijve — contact op. Nieuwsgierig naar het plotseling teruggekeerde Willowshore, biedt ze de PCs aan om officiële rentmeesters van het dorp te worden, in ruil voor persoonlijke trouw aan haar (niet aan haar meesteres Lady Lang Loi). Om deze positie te verdienen moeten de PCs de **Five-Season Treasures** verzamelen: een theatervoorstelling opvoeren, zeldzame bloemen plukken voor vuurwerk (bij een verborgen naga-astroloog, Isori), een verwilderde appelgaard heroveren op roofdieren, spinzijde bemachtigen bij de mysterieuze Whisperweb Shrine, en tenslotte de raadselachtige "path maidens" op het Gossamer Path raadplegen. Terwijl de PCs deze taken uitvoeren, pleegt een onbekende dader — in werkelijkheid de tot **yohoi** (een "brainchild"-monster) getransformeerde geest van Heh Shan-Bao — een reeks moorden op geliefde inwoners (theaterdirecteur Kazuma Oono, priesteres Elizeth Candora, kruidenvrouw You So-Jin). Het voltooien van de Vijf Seizoenen levert de **Fang and Key** op: het ceremoniële bewijs van rentmeesterschap, en de sleutel tot een herstelde, spiegelbeeld-versie van het gouverneurslandhuis.
+
+In Hoofdstuk 3 betreden de PCs via die spiegelversie een verborgen mindscape-deur naar **Kugaptee's Grasp**: een nachtmerrieachtige versie van Willowshore zoals het er over 115 jaar had kunnen uitzien als de stad tot een sprawling stad was uitgegroeid onder Heh Shan-Bao als ondode heerser en Kugaptee's gastheer-in-wording. Door de drie vermoorde zielen (Oono, Candora, You So-Jin) te bevrijden uit hun spookketenen — elk met een persoonlijk aandenken uit het echte landhuis — verzwakken de PCs Heh Shan-Bao's greep en verzamelen ze bescherming voor de laatste confrontatie. Via **Kugaptee's Grave**, een wandelgang van vier symbolische herinneringsgevechten die eerdere boeken oproepen (een herrezen Gurglegut, een corpseroot bezield door Xin Yue's geest, een bedrieglijke schaduw-Mago Kai, valse path maidens), bereiken de PCs uiteindelijk **Below Kugaptee's Claw** — de binnenplaats onder de reusachtige klauw die ooit de Grote Wilg was. Daar kunnen de PCs Heh Shan-Bao bevechten óf hem via een sociale beïnvloedingsscène overtuigen zijn pact met Kugaptee op te geven. Zijn val (in beide gevallen) ontketent Kugaptee's laatste, vierledige wraak — een reeks rampzalige beproevingen die de PCs moeten doorstaan, verzacht door de vier persoonlijke aandenkens die ze eerder verzamelden. Een visioen van de legendarische heldin Tan Sui-Jing sluit de campagne af: de Tan Sugi-boom wordt voorgoed hersteld, gevallen PCs keren terug tot leven, en Willowshore's plaats in het moderne Shenmen is (relatief) veiliggesteld — al blijft Kugaptee zelf, diep onder de boomwortels, nooit helemaal uitgeroeid.`,
+  twist:`Heh Shan-Bao's ziel overleefde het transmigratie-ritueel uit Boek 3 niet ongeschonden: hij is over 115 jaar 'in real time' volledig overgenomen door Kugaptee en heerst als een monsterlijke yohoi over een nachtmerrie-versie van Willowshore (Kugaptee's Grasp). Hij pleegt zelf de moorden die de PCs in Hoofdstuk 2 onderzoeken, en de PCs moeten via een verborgen spiegel-mindscape in zijn herstelde landhuis doordringen tot die nachtmerrie om hem definitief te bevechten of te verlossen — en zo Kugaptee's wedergeboorte alsnog te verijdelen.`,
+  chapters:[
+    {name:"Hoofdstuk 1: Willowshore's Return", pages:"4-21", body:`De PCs ontwaken in de echte wereld; hoeveel van Willowshore (en zijn bevolking) daadwerkelijk terugkeert hangt af van de Preparation Points uit Boek 3. Het gouverneurslandhuis komt eveneens terug — verwoest en bewoond door monsters (hongerige geesten, dread wraiths) en een akashti-nindoru die zich voordoet als een levende Heh Shan-Bao om de stadsoudste te vermoorden. Na het zuiveren van het landhuis richten de PCs zich op de herstelde band met de buitenwereld: de vernielde Karahai-brug herbouwen (tegen de Silkwasp Bandits in, geleid door Lo Kuon maar gecontroleerd door de jiang-shi Hong Meigui) en voor het eerst kennismaken met het moderne, jorogumo-geregeerde Shenmen.`},
+    {name:"Hoofdstuk 2: The Princess's Web", pages:"22-39", body:`De échte jorogumo-hofdame Ren Mei Li biedt de PCs rentmeesterschap over Willowshore aan in ruil voor persoonlijke trouw, op voorwaarde dat ze de Five-Season Treasures verzamelen: een theatervoorstelling (Bright Spring Bird), vuurwerk van zeldzame moerasbloemen bij de naga Isori (Fiery Flower Fireworks), het heroveren van een verwilderde appelgaard op khravgodons (Sweet Fruits of Autumn), spinzijde van de algriever-geesten bij Whisperweb Shrine (Spiced Tea of Winter), en een bezoek aan de raadselachtige path maidens op het Gossamer Path (The Final Season). Ondertussen vermoordt een onbekende dader — in werkelijkheid de tot yohoi vervormde Heh Shan-Bao — drie geliefde inwoners. Het voltooien van de taken levert de Fang and Key op, die toegang geeft tot een spiegelbeeld-versie van het gouverneurslandhuis.`},
+    {name:"Hoofdstuk 3: A Fiend in Two Worlds", pages:"40-61", body:`Met de Fang and Key betreden de PCs de herstelde, spookachtige spiegelversie van het landhuis (bewaakt door jiang-shi en een dodelijke rune-val), waar ze persoonlijke voorwerpen verzamelen die Heh Shan-Bao's verloren leven onthullen. Via een verborgen mindscape-deur bereiken ze Kugaptee's Grasp — een nachtmerrieachtige, 115 jaar 'gegroeide' versie van Willowshore geregeerd door Heh Shan-Bao als Kugaptee's gastheer. Door de drie vermoorde zielen te bevrijden (elk vastgeketend bij hun sterfplek) verzwakken de PCs zijn greep en verzamelen bescherming. Via Kugaptee's Grave — vier symbolische herinneringsgevechten die eerdere boeken oproepen — bereiken ze Below Kugaptee's Claw, waar de climax plaatsvindt: Heh Shan-Bao bevechten óf via een beïnvloedingsscène verlossen, gevolgd door Kugaptee's vierledige stervende wraak. Een visioen van Tan Sui-Jing herstelt de PCs volledig, brengt gevallen helden terug tot leven en verstevigt de Tan Sugi-boom voor generaties.`},
+    {name:"Continuing the Campaign", pages:"62-65", body:`Optioneel vervolgmateriaal voor na de hoofdcampagne. Shinzo's ware aard als boetedoende dienaar van Pharasma wordt volledig uitgewerkt (met suggesties voor zijn overtreding en een eventuele reddingsmissie). Een spookgouverneur genaamd Chou Mingxia van het nabijgelegen Sze claimt Willowshore's houtrijkdom en dwingt de PCs een juridische stok achter de deur te vinden door drie handtekeningen van naburige heersers te verzamelen — elk met een eigen mini-questlijn (een door een sahkil ontvoerde adellijke familie redden; de botten van een door jorogumo geroofde zoon terugvinden). Een legendarisch eindspel-avontuur voert de PCs uiteindelijk naar Kugaptee's eigen dromende geest voor een definitieve confrontatie met de fiend zelf.`},
+    {name:"Horrors Among Us & Adventure Toolbox", pages:"66-93", body:`'Horrors Among Us' is een losstaand bonushoofdstuk met achtergrondlore over twee terugkerende monstertypes uit de Shenmen-setting: de kuchisake-onna ('Scissored Souls') en verdere yohoi-folklore. De Adventure Toolbox bevat nieuwe items, Reincarnation-feats (voor PCs die een nieuwe voorouderlijn kiezen bij hun wedergeboorte) en statblokken voor Algriever, Imprecasia, de nindoru-varianten Argyrzei en Shisagishin, Path Maiden, en volledige NPC-uitwerkingen van Heh Shan-Bao en Ren Mei Li.`}
+  ],
+  factions:[
+    {name:"Southbank", leader:"—", hq:"Zuidelijk Willowshore", color:"south", desc:"Landelijke factie gericht op landbouw en zelfvoorziening; een van de twee politieke stromingen binnen Willowshore, overgenomen uit eerdere boeken."},
+    {name:"Northridge", leader:"—", hq:"Noordelijk Willowshore", color:"north", desc:"Verfijnde, handelsgerichte factie gericht op industrie en handel; rivaliserende stroming tegenover Southbank."},
+    {name:"Silkwasp Bandits", leader:"Lo Kuon (boegbeeld) / Hong Meigui (ware leider)", hq:"Verlaten boerderij ten noordoosten van Willowshore", color:"", desc:"Ooit een verzetsgroep tegen jorogumo-heerschappij; sinds vorige zomer in de greep van de jiang-shi-vampier Hong Meigui na een mislukte plundertocht naar het Tan Sugi-klooster. Bewaakt/beproeft de herstelde Karahai-brug."},
+    {name:"Jorogumo-hof van Yin-Sichasi", leader:"Lady Lang Loi (op afstand), Ren Mei Li (direct betrokken)", hq:"Shenmen", color:"", desc:"De spinnenvrouwen die Shenmen al meer dan een eeuw regeren. Ren Mei Li biedt de PCs in het geheim persoonlijke trouw aan háár aan (niet aan Lang Loi) in ruil voor rentmeesterschap over Willowshore."}
+  ],
+  npcs:[
+    {name:"Heh Shan-Bao / de valse gouverneur", role:"Verdwenen gouverneur — nu een akashti-nindoru-imitatie (Hfst 1) en later een tot yohoi vervormde ondode heerser (Hfst 2-3)", location:"Landhuis-ruïne (Hfst 1); Kugaptee's Grasp (Hfst 3)", faction:"hoofdantagonist", desc:"In Hfst 1 een bedrieglijke nindoru die Heh Shan-Bao imiteert om de stadsoudste te vermoorden. De échte (tot monster vervormde) Heh Shan-Bao pleegt de moorden in Hfst 2 en heerst in Hfst 3 als een deathless ruler over een nachtmerrie-Willowshore, wachtend tot hij genoeg zielen heeft om Kugaptee te laten reïncarneren.", secrets:"Zijn ziel overleefde het transmigratie-ritueel niet ongeschonden — in '115 jaar real time' werd hij volledig door Kugaptee overgenomen. Kan bevochten óf via een beïnvloedingsscène (met 4 persoonlijke aandenkens) verlost worden van zijn lot."},
+    {name:"Lo Kuon", role:"Boegbeeld-leider van de Silkwasp Bandits, voormalig verzetsheld tegen de jorogumo", location:"Karahai-brug, later hun kamp", faction:"tegenstander/mogelijke bondgenoot", desc:"Charismatisch, laat 30'er met een lokale reputatie als jorogumo-bestrijder.", secrets:"Sinds de plundertocht naar het Tan Sugi-klooster in de ban van de jiang-shi Hong Meigui (herkenbaar aan een bebloede halsdoek die een wortelmerk verbergt). Kan bevrijd worden van haar invloed en daarna een bondgenoot worden."},
+    {name:"Hong Meigui", role:"Jiang-shi-vampier, ware leider van de Silkwasp Bandits", location:"Silkwasp-kamp (verlaten boerderij)", faction:"antagonist", desc:"Hield Lo Kuon en zijn bende in haar ban sinds ze het Tan Sugi-klooster plunderden.", secrets:"Bewaart een jiang-shi bell — een object waar ze zowel bang van als geobsedeerd door is — verstopt onder een valse bodem in haar schatkist."},
+    {name:"Ren Mei Li", role:"Jorogumo-hofdame, biedt de PCs rentmeesterschap aan", location:"Bezoekt Willowshore periodiek", faction:"machtige bondgenoot/mogelijke antagonist", desc:"Elegant, zelfverzekerd, arriveert altijd in een wolk van zilveren mist. Ontmoette in Boek 3 slechts een onbewuste psychische kopie van zichzelf.", secrets:"Vraagt trouw aan haarzelf, niet aan Lady Lang Loi — een aanwijzing dat ze haar eigen agenda binnen het jorogumo-hof nastreeft."},
+    {name:"Amai", role:"Ren Mei Li's dweomercat-boodschapper", location:"Verkent Willowshore voor Ren Mei Li's bezoeken", faction:"—", desc:"Sapechierblauwe vacht met paarse spiralen; ongewoon loyaal voor een dweomercat.", secrets:"—"},
+    {name:"Isori", role:"Lunaire naga-astroloog", location:"Moon Marsh, ten noorden van Willowshore", faction:"—", desc:"Teruggetrokken geleerde die decennialang zijn observatorium heeft ingericht met astronomische snuisterijen.", secrets:"Heeft Kugaptee's groeiende corruptie in de natuur waargenomen via zijn instrumenten ('kruipende ketenen') — een vroege waarschuwing voor wat komen gaat."},
+    {name:"Kazuma Oono", role:"Theaterdirecteur, Seven-Colored Songbird theater — eerste moordslachtoffer", location:"Zijn kantoor, later gevangen als geschakelde ziel in Kugaptee's Grasp", faction:"—", desc:"Werkte aan een nieuw toneelstuk over de PCs' avonturen in de mindscape.", secrets:"Vermoord omdat hij een toneelstuk plande dat een openlijke kritiek was op gouverneur Heh Shan-Bao."},
+    {name:"Elizeth Candora", role:"Priesteres van Pharasma, Her Fluvial Lady of Souls — tweede moordslachtoffer", location:"Kerkhof bij haar tempel, later gevangen in Kugaptee's Grasp", faction:"—", desc:"Speelde fluit om rondwarende zielen op het kerkhof tot rust te brengen.", secrets:"Vermoord vanwege haar band met Pharasma (wiens domein over de doden lijnrecht tegenover Kugaptee staat) en Heh Shan-Bao's angst/haat voor fluitmuziek."},
+    {name:"You So-Jin", role:"Kruidenvrouw/alchemiste, Graveside Manners — derde moordslachtoffer", location:"Haar winkel, later gevangen in Kugaptee's Grasp", faction:"—", desc:"Werkte aan een nieuwe alchemische bom specifiek tegen nindoru's.", secrets:"Haar journaal bevat de formule voor de 'silversoul bomb' — een familietraditie van generaties alchemistisch onderzoek."},
+    {name:"Path Maidens", role:"Gesluierde geestbewaarders van het Gossamer Path", location:"Gossamer Mountains (bereikbaar via een gossamer-sjerp)", faction:"neutraal/mysterieus", desc:"Spreken zowel fluisterend als telepathisch; hoeders van de geheimen van de schaamtevolle doden.", secrets:"Geven de PCs één antwoord op één vraag — vragen over Kugaptee of Heh Shan-Bao onthullen een visioen dat wijst naar diens ware, monsterlijke lot en een verborgen deur in het gouverneurslandhuis."},
+    {name:"Gurglegut (Kugaptee's Grasp-versie)", role:"Herrezen, verheven versie van de buso uit Boek 1", location:"Kugaptee's Grave, D1 'Summertime Guard'", faction:"herinneringsgevecht", desc:"13 voet groot, gezeten op een reusachtige troon op een spiegelbeeld van Dawnstep Bridge; bewaakt door vier onidoshi.", secrets:"Kan tot genade bewogen worden — onthult dan dat hij hier gevangen wordt gehouden door Kugaptee, vlak voordat hij alsnog voorgoed sterft."},
+    {name:"Corpseroot (bezield door Xin Yue)", role:"Ondode boom-monster, herinnering aan Boek 2's eindbaas", location:"Kugaptee's Grave, D2 'A Fallen Tree'", faction:"herinneringsgevecht", desc:"Een dode, verwrongen versie van de Tan Sugi-boom waaruit Xin Yue's woedende gezicht groeit.", secrets:"—"},
+    {name:"Argyrzei ('Mago Kai')", role:"Nindoru vermomd als Mago Kai", location:"Kugaptee's Grave, D3 'Lord of Winter'", faction:"herinneringsgevecht", desc:"Biedt de PCs vergiftigde zilveren theekopjes aan onder het mom van gastvrijheid.", secrets:"Onthult zijn ware, hoofdloze vorm zodra hij schade oploopt of de PCs zijn 'geschenk' weigeren."},
+    {name:"Kugaptee", role:"Aloude fiend, wacht op wedergeboorte via Heh Shan-Bao", location:"Manifesteert als een reusachtige klauw boven Kugaptee's Grasp (voorheen de Grote Wilg)", faction:"hoofdantagonist campagne", desc:"Blijft grotendeels een achtergrondaanwezigheid tot de climax, waar zijn 'stervende wraak' de PCs met vier rampzalige beproevingen confronteert.", secrets:"Wordt aan het eind teruggedrongen tot stille dood onder de herstelde Tan Sugi-boom, maar niet definitief vernietigd — blijft een mogelijke dreiging voor toekomstige verhalen."},
+    {name:"Tan Sui-Jing", role:"Legendarische heldin, verschijnt in een afsluitend visioen", location:"—", faction:"—", desc:"Haar geest deelt op het eind haar kracht met de PCs om hen te herstellen en de Tan Sugi-boom te versterken.", secrets:"—"},
+    {name:"Shinzo", role:"Shinigami, brengt een laatste afscheidsbezoek", location:"Willowshore, kort na de terugkeer naar de levende wereld", faction:"vertrokken bondgenoot", desc:"Neemt afscheid nu zijn taak (Willowshore terug naar het leven brengen) volbracht is.", secrets:"Zijn oude overtreding tegen Pharasma blijft losjes gedefinieerd — de GM kiest zelf de aard ervan als de PCs zijn verhaal verder willen volgen."}
+  ],
+  locations:[
+    {code:"—", name:"Governor's Manor (ruïne, Hfst 1)", desc:"Keert verwoest terug uit de mindscape, bewoond door hongerige geesten, dread wraiths en een akashti-nindoru vermomd als Heh Shan-Bao. Na zuivering vrijgegeven aan de PCs als buit."},
+    {code:"—", name:"Karahai-brug", desc:"Verwoeste brug tussen Willowshore's hinterland en de kust; moet via een downtime-activiteit herbouwd worden en wordt tussentijds belaagd door de Silkwasp Bandits."},
+    {code:"—", name:"Karahai", desc:"Handelsvesting en economische link naar Shenmen, nu een level 3-nederzetting; wordt de nieuwe standaard winkelhub van de PCs na Shinzo's vertrek."},
+    {code:"—", name:"Silkwasp Camp", desc:"Verlaten boerderij/ranch op een klif boven de Zee van Spoken, ten noordoosten van Willowshore; basis van de Silkwasp Bandits en Hong Meigui."},
+    {code:"—", name:"Moon Marsh", desc:"Moerasgebied ~18 mijl ten noorden van Willowshore, bekend om nachtbloeiende Hei Feng's horn-bloemen; thuis van de naga Isori's observatorium."},
+    {code:"—", name:"Overgrown Apple Grove", desc:"Verwilderde boomgaard ~20 mijl ten zuiden van Willowshore, overgenomen door khravgodons; bevat de resten van een lang geleden overleden avonturier."},
+    {code:"—", name:"Whisperweb Shrine", desc:"Idyllisch ogende schrijn ten noorden van Willowshore, versierd met lantaarns en gemummificeerde lichamen, bewaakt door zes algriever-geesten die spinzijde produceren voor theeceremonies."},
+    {code:"—", name:"Gossamer Path", desc:"De winding bergwegen door de Gossamer Mountains, ~300 mijl ten oosten; via een gossamer-sjerp (Ren Mei Li's geschenk) vanaf elke weg in Shenmen na middernacht bereikbaar. Thuis van de path maidens."},
+    {code:"C1-C8", name:"Het Herstelde Gouverneurslandgoed (spiegelversie)", desc:"Spookachtig prachtige mindscape-versie van het landhuis, alleen zichtbaar/betreedbaar voor rentmeesters met de Fang and Key; bevat jiang-shi-bewakers, een rune-val-kluis, en de mindscape-deur naar Kugaptee's Grasp."},
+    {code:"—", name:"Kugaptee's Grasp", desc:"De verwrongen, 115-jaar 'gegroeide' versie van Willowshore: een sprawling nachtmerriestad onder een bloedrode hemel, geregeerd door Heh Shan-Bao als Kugaptee's vat, met de reusachtige klauw (voorheen de Grote Wilg) als centraal landmerk."},
+    {code:"D1-D4", name:"Kugaptee's Grave", desc:"Doolhofachtige 'grot'-zone binnen de Grasp met vier herinneringsgevechten die eerdere campagneboeken oproepen: Gurglegut (D1), de Corpseroot/Xin Yue (D2), de vermomde argyrzei als 'Mago Kai' (D3), en gecorrumpeerde path maidens (D4)."},
+    {code:"—", name:"Below Kugaptee's Claw / The Governor's Den", desc:"De nachtmerrieachtige binnenplaats onder de klauw waar de climax van de hele campagne plaatsvindt: de finale confrontatie met Heh Shan-Bao, gevolgd door Kugaptee's viertraps rampzalige ondergang."},
+    {code:"—", name:"Sze", desc:"Vervloekte stad geregeerd door spookgouverneur Chou Mingxia; doelwit van een post-campagne questlijn om haar claim op Willowshore ongedaan te maken."}
+  ],
+  mysteries:[
+    "Wie de moordenaar in Willowshore is: opgelost als de tot yohoi getransformeerde geest van gouverneur Heh Shan-Bao, die zielen oogst om zichzelf voor te bereiden als vat voor Kugaptee's wedergeboorte.",
+    "Wat er werkelijk met Heh Shan-Bao gebeurde na het transmigratie-ritueel: hij bleef 115 jaar 'real time' gevangen terwijl Kugaptee hem volledig overnam, in plaats van bevrijd te worden zoals de PCs dachten.",
+    "Ren Mei Li's ware agenda: ze vraagt persoonlijke trouw aan zichzelf in plaats van aan Lady Lang Loi — een aanwijzing voor een eigen politieke ambitie binnen het jorogumo-hof, nooit volledig uitgewerkt in dit boek.",
+    "Wat de Fang and Key werkelijk is: veel meer dan een ceremonieel object — de enige sleutel tot Heh Shan-Bao's verborgen spiegel-landgoed en daarmee tot Kugaptee's Grasp.",
+    "Xin Yue's lot na haar nederlaag in Boek 2: haar ziel blijkt verstrengeld met de corrupte Tan Sugi-boom en bezielt de Corpseroot-herinneringsgevecht in Kugaptee's Grave.",
+    "Het uiteindelijke lot van Kugaptee zelf: blijft een open einde — teruggedrongen en zijn wedergeboorte verijdeld, maar niet definitief vernietigd. Een apart legendarisch eindspel-avontuur (Continuing the Campaign) is nodig om hem voorgoed te elimineren.",
+    "Shinzo's oude overtreding tegen Pharasma: blijft bewust vaag — de GM kiest zelf de aard ervan als het verhaal wordt voortgezet na de hoofdcampagne."
+  ]
+}
+];
+
+const CONNECTIONS = [
+  {a:"Kugaptee", b:"Wall of Ghosts", rel:"Kugaptee's aloude, aan een sugi-boom gebonden graf ligt achter de Wall of Ghosts; zijn lekkende invloed manifesteert als monsters en de vloek-mist door heel Boek 1-2."},
+  {a:"Heh Shan-Bao", b:"Kugaptee", rel:"Heh Shan-Bao's mislukte ritueel om Kugaptee te verzegelen (7108) doodde heel Willowshore en creëerde de dubbele mindscape."},
+  {a:"Heh Shan-Bao", b:"Governor's Manor", rel:"Zijn hele landhuis verdween mee toen hij in zijn eigen parallelle mindscape gevangen raakte."},
+  {a:"Mago Kai", b:"Chou Mingxia", rel:"Mago Kai werkt in opdracht van het spook Chou Mingxia, heerser van Sze, en verstoort onbewust de tijdlus met zijn heropbouw/exorcisme-poging."},
+  {a:"Fan Hongrui", b:"Heh Shan-Bao", rel:"Hongrui's dood (7105) en vloekachtige laatste woorden worden door de dorpselders (speculatief) gelinkt aan Heh Shan-Bao's latere verdwijning — blijkt een doodlopend spoor in Boek 1."},
+  {a:"Tan Sui-Jing", b:"Kugaptee", rel:"Versloeg Kugaptee in 6223 ic maar stierf zelf; haar lichaam werd de sugi-boom die nu zijn graf markeert."},
+  {a:"Zhi Hui", b:"Willowshore", rel:"Stichtte het dorp en het Tan Sugi-klooster rond de sugi-boom/Kugaptee's graf; ontstak ooit de Eternal Lantern."},
+  {a:"Asahina Shinzo", b:"Pharasma", rel:"Shinigami in dienst van Pharasma, boet voor een oude overtreding door de PCs stilletjes te helpen — mysterieuze terugkerende figuur doorheen de hele AP."},
+  {a:"Great Willow", b:"Willowshore mindscape", rel:"Enige kodama die wél is meegezogen in de mindscape ('The Last Kodama') — andere kodama's in de regio bestaan gewoon door in de echte wereld."}
+];
+
+/* =========================================================================
+   APP STATE & RENDER LOGIC
+   ========================================================================= */
+let state = { book: 1, view: "overview" };
+
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!==undefined) e.innerHTML=html; return e; }
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function currentBook(){ return BOOKS.find(b=>b.id===state.book); }
+
+function renderTabs(){
+  const wrap = document.getElementById("bookTabs");
+  wrap.innerHTML = "";
+  BOOKS.forEach(b=>{
+    const t = el("div", "book-tab" + (b.id===state.book?" active":""), "Boek "+b.id);
+    t.title = b.title;
+    t.onclick = ()=>{ state.book=b.id; renderTabs(); renderNav(); renderMain(); };
+    wrap.appendChild(t);
+  });
+}
+
+function renderNav(){
+  document.querySelectorAll(".nav-item[data-view]").forEach(n=>{
+    n.classList.toggle("active", n.dataset.view===state.view);
+  });
+}
+
+document.querySelectorAll(".nav-item[data-view]").forEach(n=>{
+  n.onclick = ()=>{ state.view = n.dataset.view; renderNav(); renderMain(); };
+});
+
+function renderMain(){
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  const book = currentBook();
+
+  if(state.view === "notes"){ renderNotes(main); return; }
+  if(state.view === "sessions"){ renderSessions(main); return; }
+  if(state.view === "timeline"){ renderTimeline(main); return; }
+  if(state.view === "connections"){ renderConnections(main); return; }
+
+  main.appendChild(el("h2","page-title", esc(book.title)));
+  main.appendChild(el("div","page-sub", esc(book.subtitle)));
+
+  if(state.view === "overview") renderOverview(main, book);
+  else if(state.view === "chapters") renderChapters(main, book);
+  else if(state.view === "npcs") renderNpcs(main, book);
+  else if(state.view === "locations") renderLocations(main, book);
+  else if(state.view === "map") renderMap(main, book);
+  else if(state.view === "factions") renderFactions(main, book);
+  else if(state.view === "mysteries") renderMysteries(main, book);
+}
+
+function renderOverview(main, book){
+  const c = el("div","card");
+  c.appendChild(el("h3","","Campagne-opzet"));
+  c.appendChild(el("p","", esc(CAMPAIGN.premise)));
+  main.appendChild(c);
+
+  const c2 = el("div","card");
+  c2.appendChild(el("h3","","Samenvatting"));
+  c2.appendChild(el("p","", esc(book.overview)));
+  if(book.twist){
+    c2.appendChild(el("p","","<b style='color:var(--danger)'>Twist:</b> "+esc(book.twist)));
+  }
+  main.appendChild(c2);
+
+  if(book.mysteries && book.mysteries.length){
+    const c3 = el("div","card");
+    c3.appendChild(el("h3","","Openstaande mysteries"));
+    const ul = el("div","");
+    book.mysteries.forEach(m=>ul.appendChild(el("p","","• "+esc(m))));
+    c3.appendChild(ul);
+    main.appendChild(c3);
+  }
+}
+
+function renderChapters(main, book){
+  if(!book.chapters.length){ main.appendChild(el("div","empty-state","Nog niet in detail uitgewerkt voor dit boek.")); return; }
+  book.chapters.forEach((ch,i)=>{
+    const d = el("details","chapter");
+    if(i===0) d.open = true;
+    const s = el("summary","", `<span>${esc(ch.name)}</span><span class="pg">p.${esc(ch.pages)}</span>`);
+    d.appendChild(s);
+    d.appendChild(el("div","chapter-body", esc(ch.body)));
+    main.appendChild(d);
+  });
+}
+
+function renderFactions(main, book){
+  if(!book.factions.length){ main.appendChild(el("div","empty-state","Nog niet in detail uitgewerkt voor dit boek.")); return; }
+  const grid = el("div","grid2");
+  book.factions.forEach(f=>{
+    const c = el("div","card");
+    c.appendChild(el("h3","", `${esc(f.name)} <span class="badge ${f.color}">${esc(f.color==='north'?'Northridge':f.color==='south'?'Southbank':'')}</span>`));
+    c.appendChild(el("p","", "<b>Leider:</b> "+esc(f.leader)));
+    c.appendChild(el("p","", "<b>Hoofdkwartier:</b> "+esc(f.hq)));
+    c.appendChild(el("p","", esc(f.desc)));
+    grid.appendChild(c);
+  });
+  main.appendChild(grid);
+}
+
+function renderMysteries(main, book){
+  if(!book.mysteries.length){ main.appendChild(el("div","empty-state","Nog niet in detail uitgewerkt voor dit boek.")); return; }
+  book.mysteries.forEach(m=>{
+    const c = el("div","card");
+    c.appendChild(el("p","", "🔮 "+esc(m)));
+    main.appendChild(c);
+  });
+}
+
+function npcCard(n){
+  const c = el("div","card");
+  let factionBadge = "";
+  if(n.faction==="Northridge") factionBadge = `<span class="badge north">Northridge</span>`;
+  else if(n.faction==="Southbank") factionBadge = `<span class="badge south">Southbank</span>`;
+  else if(n.faction && (n.faction.includes("antagonist")||n.faction==="hoofdantagonist")) factionBadge = `<span class="badge danger">${esc(n.faction)}</span>`;
+  else if(n.faction && n.faction!=="—") factionBadge = `<span class="badge accent2">${esc(n.faction)}</span>`;
+  c.appendChild(el("h3","", esc(n.name)+" "+factionBadge));
+  c.appendChild(el("div","meta-row", `<span><b>Rol:</b> ${esc(n.role)}</span><span><b>Locatie:</b> ${esc(n.location)}</span>`));
+  c.appendChild(el("p","", esc(n.desc)));
+  if(n.secrets && n.secrets!=="—") c.appendChild(el("p","", "<b style='color:var(--accent)'>Weetjes:</b> "+esc(n.secrets)));
+  return c;
+}
+
+function renderNpcs(main, book){
+  if(!book.npcs.length){ main.appendChild(el("div","empty-state","Nog niet in detail uitgewerkt voor dit boek.")); return; }
+  const filterBar = el("div","filter-bar");
+  const search = el("input",""); search.type="text"; search.placeholder="Filter NPC's op naam, rol, locatie...";
+  filterBar.appendChild(search);
+  main.appendChild(filterBar);
+
+  const listWrap = el("div","");
+  main.appendChild(listWrap);
+
+  function draw(filter){
+    listWrap.innerHTML = "";
+    const f = (filter||"").toLowerCase();
+    book.npcs.filter(n => !f || (n.name+n.role+n.location+n.faction+n.desc+n.secrets).toLowerCase().includes(f))
+      .forEach(n=> listWrap.appendChild(npcCard(n)));
+    if(!listWrap.children.length) listWrap.appendChild(el("div","empty-state","Geen NPC's gevonden."));
+  }
+  draw("");
+  search.oninput = ()=>draw(search.value);
+}
+
+function renderLocations(main, book){
+  if(!book.locations.length){ main.appendChild(el("div","empty-state","Nog niet in detail uitgewerkt voor dit boek.")); return; }
+  const table = el("table","ref-table");
+  table.innerHTML = "<tr><th style='width:60px'>Code</th><th style='width:220px'>Locatie</th><th>Beschrijving</th></tr>";
+  book.locations.forEach(l=>{
+    const tr = el("tr","", `<td>${esc(l.code)}</td><td><b>${esc(l.name)}</b></td><td>${esc(l.desc)}</td>`);
+    table.appendChild(tr);
+  });
+  main.appendChild(table);
+}
+
+/* =========================================================================
+   MAP (regional map of Willowshore, NPCs plotted by matched location)
+   ========================================================================= */
+const SVG_NS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs){
+  const e = document.createElementNS(SVG_NS, tag);
+  if(attrs) Object.keys(attrs).forEach(k=> e.setAttribute(k, attrs[k]));
+  return e;
+}
+
+const MAP_POIS = [
+  {key:"teahouse", name:"Cerulean Teahouse", x:460, y:330, cat:"town", keywords:["cerulean teahouse","cerulean theehuis","theehuis"]},
+  {key:"tradeoffice", name:"Trade Office", x:415, y:295, cat:"town", keywords:["trade office","ceiba-duyue exchange"]},
+  {key:"stables", name:"Stables", x:515, y:365, cat:"town", keywords:["stables","stallen"]},
+  {key:"temple", name:"Her Fluvial Lady of Souls", x:375, y:370, cat:"town", keywords:["fluvial lady of souls"]},
+  {key:"graveside", name:"Graveside Manners", x:335, y:325, cat:"town", keywords:["graveside manners"]},
+  {key:"manor", name:"Gouverneurslandhuis", x:510, y:250, cat:"town", keywords:["landhuis","gouverneurswoning","governor's manor","manor"]},
+  {key:"shrine", name:"Nine Ear Shrine", x:430, y:220, cat:"town", keywords:["nine ear shrine","desna-heiligdom","desna shrine"]},
+  {key:"bones", name:"Bones of the Forgotten", x:210, y:175, cat:"town", keywords:["bones of the forgotten"]},
+  {key:"greatwillow", name:"Great Willow", x:470, y:110, cat:"town", keywords:["great willow"]},
+  {key:"bridge", name:"Dawnstep Bridge", x:495, y:485, cat:"town", keywords:["dawnstep bridge","ceiba-rivier","ceiba river"]},
+  {key:"wallofghosts", name:"Wall of Ghosts & Tan Sugi-klooster", x:80, y:300, cat:"region", keywords:["wall of ghosts","tan sugi","klooster","monastery","kugaptee's grave","kugaptee's grasp","pilgrim's path"]},
+  {key:"karahai", name:"Karahai", x:805, y:555, cat:"region", keywords:["karahai"]},
+  {key:"silkwasp", name:"Silkwasp Camp", x:775, y:95, cat:"region", keywords:["silkwasp"]},
+  {key:"moonmarsh", name:"Moon Marsh", x:480, y:35, cat:"region", keywords:["moon marsh"]},
+  {key:"applegrove", name:"Overgrown Apple Grove", x:365, y:605, cat:"region", keywords:["apple grove","appelgaard"]},
+  {key:"whisperweb", name:"Whisperweb Shrine", x:645, y:50, cat:"region", keywords:["whisperweb"]},
+];
+
+function matchPOI(locationText){
+  if(!locationText) return null;
+  const lower = locationText.toLowerCase();
+  let best = null, bestLen = 0;
+  MAP_POIS.forEach(p=>{
+    p.keywords.forEach(k=>{
+      if(lower.includes(k) && k.length > bestLen){ best = p; bestLen = k.length; }
+    });
+  });
+  return best;
+}
+
+function renderMap(main, book){
+  const wrap = el("div","map-wrap");
+  const byPoi = new Map();
+  const unplaced = [];
+  book.npcs.forEach(n=>{
+    const poi = matchPOI(n.location);
+    if(poi){ if(!byPoi.has(poi.key)) byPoi.set(poi.key, []); byPoi.get(poi.key).push(n); }
+    else unplaced.push(n);
+  });
+
+  const svg = svgEl("svg", {viewBox:"0 0 900 640", class:"willowshore-map"});
+  svg.appendChild(svgEl("rect", {x:0,y:0,width:900,height:640,class:"map-bg"}));
+  svg.appendChild(svgEl("path", {d:"M 60 240 Q 250 300 350 380 T 520 480 T 800 560", class:"map-river"}));
+
+  const townCenter = {x:430, y:300};
+  MAP_POIS.filter(p=>p.cat==="region").forEach(p=>{
+    svg.appendChild(svgEl("line", {x1:townCenter.x, y1:townCenter.y, x2:p.x, y2:p.y, class:"map-road"}));
+  });
+
+  const townLabel = svgEl("text", {x:430, y:230, class:"map-town-label", "text-anchor":"middle"});
+  townLabel.textContent = "Willowshore";
+  svg.appendChild(townLabel);
+  const compass = svgEl("text", {x:855, y:28, class:"map-compass"});
+  compass.textContent = "N ↑";
+  svg.appendChild(compass);
+
+  MAP_POIS.forEach(p=>{
+    const npcs = byPoi.get(p.key) || [];
+    const r = npcs.length ? Math.min(20, 9 + npcs.length*2.5) : 6;
+    const g = svgEl("g", {class:"map-poi"+(npcs.length? " has-npcs":"")+" cat-"+p.cat, "data-poi":p.key, tabindex:"0", role:"button", "aria-label":p.name});
+    g.appendChild(svgEl("circle", {cx:p.x, cy:p.y, r:r}));
+    const label = svgEl("text", {x:p.x, y:p.y - r - 6, "text-anchor":"middle", class:"map-label"});
+    label.textContent = p.name + (npcs.length? " ("+npcs.length+")":"");
+    g.appendChild(label);
+    svg.appendChild(g);
+  });
+
+  wrap.appendChild(svg);
+  main.appendChild(wrap);
+
+  const detail = el("div","map-detail");
+  detail.appendChild(el("div","empty-state","Klik op een locatie op de kaart voor de NPC's die daar te vinden zijn."));
+  main.appendChild(detail);
+
+  function selectPoi(g){
+    svg.querySelectorAll(".map-poi").forEach(x=>x.classList.remove("selected"));
+    g.classList.add("selected");
+    const poi = MAP_POIS.find(p=>p.key===g.dataset.poi);
+    const npcs = byPoi.get(poi.key) || [];
+    detail.innerHTML = "";
+    detail.appendChild(el("h3","", "📍 "+esc(poi.name)));
+    if(!npcs.length){
+      detail.appendChild(el("div","empty-state","Geen NPC's uit dit boek met deze locatie gekoppeld."));
+    } else {
+      npcs.forEach(n=> detail.appendChild(npcCard(n)));
+    }
+  }
+  svg.querySelectorAll("[data-poi]").forEach(g=>{
+    g.addEventListener("click", ()=>selectPoi(g));
+    g.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); selectPoi(g); } });
+  });
+
+  if(unplaced.length){
+    const c = el("div","card");
+    c.appendChild(el("h3","","Overige NPC's (locatie niet herkend op de kaart)"));
+    c.appendChild(el("p","","Deze personages bevinden zich ergens buiten de vaste kaartlocaties hierboven — check het NPC-tabblad voor de volledige locatietekst."));
+    const chipRow = el("div","chip-row");
+    unplaced.forEach(n=>{
+      const chip = el("span","chip", esc(n.name));
+      chip.title = n.location;
+      chipRow.appendChild(chip);
+    });
+    c.appendChild(chipRow);
+    main.appendChild(c);
+  }
+}
+
+function renderTimeline(main){
+  main.appendChild(el("h2","page-title","Campagne-tijdlijn"));
+  main.appendChild(el("div","page-sub","Achtergrondgeschiedenis van Willowshore en Kugaptee, doorheen alle 4 boeken."));
+  const tl = el("div","timeline");
+  GLOBAL_TIMELINE.forEach(t=>{
+    const item = el("div","tl-item");
+    item.appendChild(el("div","tl-date", esc(t.date)));
+    item.appendChild(el("div","tl-text", esc(t.text)));
+    tl.appendChild(item);
+  });
+  main.appendChild(tl);
+}
+
+function renderConnections(main){
+  main.appendChild(el("h2","page-title","Connecties tussen personages & gebeurtenissen"));
+  main.appendChild(el("div","page-sub","Wie kent wie, en waarom maakt het uit."));
+  CONNECTIONS.forEach(c=>{
+    const card = el("div","card");
+    card.appendChild(el("h3","", `${esc(c.a)} <span style="color:var(--text-faint)">↔</span> ${esc(c.b)}`));
+    card.appendChild(el("p","", esc(c.rel)));
+    main.appendChild(card);
+  });
+}
+
+/* =========================================================================
+   SEARCH (cross-book)
+   ========================================================================= */
+function buildSearchIndex(){
+  const idx = [];
+  BOOKS.forEach(b=>{
+    b.npcs.forEach(n=> idx.push({type:"NPC", book:b.id, name:n.name, meta:n.role+" · "+n.location, go:()=>{state.book=b.id; state.view="npcs"; renderTabs(); renderNav(); renderMain();}}));
+    b.locations.forEach(l=> idx.push({type:"Locatie", book:b.id, name:l.name, meta:l.desc.slice(0,80), go:()=>{state.book=b.id; state.view="locations"; renderTabs(); renderNav(); renderMain();}}));
+    b.chapters.forEach(c=> idx.push({type:"Hoofdstuk", book:b.id, name:c.name, meta:"p."+c.pages, go:()=>{state.book=b.id; state.view="chapters"; renderTabs(); renderNav(); renderMain();}}));
+  });
+  CONNECTIONS.forEach(c=> idx.push({type:"Connectie", book:0, name:c.a+" ↔ "+c.b, meta:c.rel.slice(0,80), go:()=>{state.view="connections"; renderNav(); renderMain();}}));
+  return idx;
+}
+let SEARCH_INDEX = buildSearchIndex();
+
+const searchBox = document.getElementById("searchBox");
+const searchResults = document.getElementById("searchResults");
+searchBox.addEventListener("input", ()=>{
+  const q = searchBox.value.trim().toLowerCase();
+  if(!q){ searchResults.classList.remove("show"); return; }
+  const results = SEARCH_INDEX.filter(i => (i.name+i.meta).toLowerCase().includes(q)).slice(0,25);
+  searchResults.innerHTML = "";
+  if(!results.length){ searchResults.appendChild(el("div","sr-item","Geen resultaten.")); }
+  results.forEach(r=>{
+    const item = el("div","sr-item");
+    item.innerHTML = `<span class="sr-tag">${esc(r.type)}${r.book?(' · Boek '+r.book):''}</span><div class="sr-name">${esc(r.name)}</div><div class="sr-meta">${esc(r.meta)}</div>`;
+    item.onclick = ()=>{ r.go(); searchResults.classList.remove("show"); searchBox.value=""; };
+    searchResults.appendChild(item);
+  });
+  searchResults.classList.add("show");
+});
+document.addEventListener("click", (e)=>{ if(!searchResults.contains(e.target) && e.target!==searchBox) searchResults.classList.remove("show"); });
+document.addEventListener("keydown", (e)=>{
+  if((e.ctrlKey||e.metaKey) && e.key==="k"){ e.preventDefault(); searchBox.focus(); }
+  if(e.key==="Escape"){ searchResults.classList.remove("show"); searchBox.blur(); }
+});
+
+/* =========================================================================
+   NOTES (localStorage + optional GitHub cloud sync)
+   ========================================================================= */
+const NOTES_KEY = "sog_notes_v1";
+function loadNotes(){ try{ return JSON.parse(localStorage.getItem(NOTES_KEY)) || []; }catch(e){ return []; } }
+function saveNotes(notes){ localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); }
+let activeNoteId = null;
+
+const SESSIONS_KEY = "sog_sessions_v1";
+function loadSessions(){ try{ return JSON.parse(localStorage.getItem(SESSIONS_KEY)) || []; }catch(e){ return []; } }
+function saveSessions(sessions){ localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions)); }
+let activeSessionId = null;
+
+/* ---- Cloud sync via GitHub Contents API ----
+   Notes (including soft-deleted ones, as tombstones) are mirrored to a
+   notes.json file in a GitHub repo. Sync is optional: without a token,
+   everything still works locally via localStorage only. */
+const GH_OWNER = "Otherchurch";
+const GH_REPO = "season-of-ghosts-companion";
+const GH_PATH = "notes.json";
+const GH_BRANCH = "main";
+const GH_TOKEN_KEY = "sog_gh_pat";
+const GH_SHA_KEY = "sog_gh_sha";
+
+function getGhToken(){ return localStorage.getItem(GH_TOKEN_KEY) || ""; }
+function setGhToken(t){ if(t) localStorage.setItem(GH_TOKEN_KEY, t); else { localStorage.removeItem(GH_TOKEN_KEY); localStorage.removeItem(GH_SHA_KEY); } }
+function getGhSha(){ return localStorage.getItem(GH_SHA_KEY) || null; }
+function setGhSha(s){ if(s) localStorage.setItem(GH_SHA_KEY, s); else localStorage.removeItem(GH_SHA_KEY); }
+
+function b64EncodeUtf8(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64DecodeUtf8(b64){ return decodeURIComponent(escape(atob(b64.replace(/\n/g,"")))); }
+
+let syncState = { status: "off", lastSync: null, error: null }; // off | idle | syncing | error
+function setSyncState(patch){ syncState = Object.assign({}, syncState, patch); updateSyncBadge(); }
+function updateSyncBadge(){
+  const dot = document.getElementById("syncDot");
+  const label = document.getElementById("syncLabel");
+  if(!dot || !label) return;
+  dot.className = "sync-dot" + (syncState.status==="error" ? " err" : (syncState.status!=="off" ? " on" : ""));
+  const when = syncState.lastSync ? new Date(syncState.lastSync).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}) : null;
+  if(syncState.status==="off") label.textContent = "Cloud sync uit — notities blijven alleen lokaal in deze browser.";
+  else if(syncState.status==="syncing") label.textContent = "Synchroniseren...";
+  else if(syncState.status==="error") label.textContent = "Sync-fout: " + (syncState.error||"onbekend") + (when?(" · laatst gelukt "+when):"");
+  else label.textContent = "Cloud sync actief" + (when?(" · laatst gesynced "+when):"") + " — " + GH_OWNER + "/" + GH_REPO;
+}
+
+async function ghRequest(method, path, body){
+  const token = getGhToken();
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`;
+  const headers = { "Authorization": "Bearer " + token, "Accept": "application/vnd.github+json" };
+  if(method==="PUT") headers["Content-Type"] = "application/json";
+  const res = await fetch(method==="PUT" ? url.split("?")[0] : url, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  return res;
+}
+
+async function ghPullNotes(){
+  if(!getGhToken()) return null;
+  const res = await ghRequest("GET", GH_PATH);
+  if(res.status === 404){ setGhSha(null); return []; }
+  if(!res.ok) throw new Error(res.status===401||res.status===403 ? "ongeldige of te beperkte token" : ("HTTP "+res.status));
+  const data = await res.json();
+  setGhSha(data.sha);
+  try{ return JSON.parse(b64DecodeUtf8(data.content)); }catch(e){ return []; }
+}
+
+async function ghPushNotes(notes, retriesLeft){
+  if(retriesLeft === undefined) retriesLeft = 2;
+  if(!getGhToken()) return;
+  const payload = { message: "Update notes.json", content: b64EncodeUtf8(JSON.stringify(notes, null, 2)), branch: GH_BRANCH };
+  const sha = getGhSha();
+  if(sha) payload.sha = sha;
+  const res = await ghRequest("PUT", GH_PATH, payload);
+  if(res.status === 409 || res.status === 422){
+    if(retriesLeft <= 0) throw new Error("blijvend conflict, probeer later opnieuw");
+    const remote = await ghPullNotes();
+    const merged = mergeNotes(remote||[], notes);
+    saveNotes(merged);
+    return ghPushNotes(merged, retriesLeft-1);
+  }
+  if(!res.ok) throw new Error(res.status===401||res.status===403 ? "ongeldige of te beperkte token" : ("HTTP "+res.status));
+  const data = await res.json();
+  if(data.content && data.content.sha) setGhSha(data.content.sha);
+}
+
+/* ---- Sessions: same GitHub-mirrored pattern as Notes, separate file ---- */
+const GH_SESSIONS_PATH = "sessions.json";
+const GH_SESSIONS_SHA_KEY = "sog_gh_sha_sessions";
+function getGhSessionsSha(){ return localStorage.getItem(GH_SESSIONS_SHA_KEY) || null; }
+function setGhSessionsSha(s){ if(s) localStorage.setItem(GH_SESSIONS_SHA_KEY, s); else localStorage.removeItem(GH_SESSIONS_SHA_KEY); }
+
+async function ghPullSessions(){
+  if(!getGhToken()) return null;
+  const res = await ghRequest("GET", GH_SESSIONS_PATH);
+  if(res.status === 404){ setGhSessionsSha(null); return []; }
+  if(!res.ok) throw new Error(res.status===401||res.status===403 ? "ongeldige of te beperkte token" : ("HTTP "+res.status));
+  const data = await res.json();
+  setGhSessionsSha(data.sha);
+  try{ return JSON.parse(b64DecodeUtf8(data.content)); }catch(e){ return []; }
+}
+
+async function ghPushSessions(sessions, retriesLeft){
+  if(retriesLeft === undefined) retriesLeft = 2;
+  if(!getGhToken()) return;
+  const payload = { message: "Update sessions.json", content: b64EncodeUtf8(JSON.stringify(sessions, null, 2)), branch: GH_BRANCH };
+  const sha = getGhSessionsSha();
+  if(sha) payload.sha = sha;
+  const res = await ghRequest("PUT", GH_SESSIONS_PATH, payload);
+  if(res.status === 409 || res.status === 422){
+    if(retriesLeft <= 0) throw new Error("blijvend conflict, probeer later opnieuw");
+    const remote = await ghPullSessions();
+    const merged = mergeNotes(remote||[], sessions); // mergeNotes is generic (id + updated)
+    saveSessions(merged);
+    return ghPushSessions(merged, retriesLeft-1);
+  }
+  if(!res.ok) throw new Error(res.status===401||res.status===403 ? "ongeldige of te beperkte token" : ("HTTP "+res.status));
+  const data = await res.json();
+  if(data.content && data.content.sha) setGhSessionsSha(data.content.sha);
+}
+
+// Last-write-wins per note id, keyed on `updated`. Deletions are tombstones
+// (deleted:true) so they propagate instead of "resurrecting" on merge.
+function mergeNotes(a, b){
+  const byId = new Map();
+  [...a, ...b].forEach(n=>{
+    const existing = byId.get(n.id);
+    if(!existing || n.updated > existing.updated) byId.set(n.id, n);
+  });
+  return Array.from(byId.values());
+}
+
+let syncPollTimer = null;
+let syncPushTimer = null;
+function scheduleSyncPush(){
+  if(!getGhToken()) return;
+  clearTimeout(syncPushTimer);
+  setSyncState({status:"syncing"});
+  syncPushTimer = setTimeout(async ()=>{
+    try{ await ghPushNotes(loadNotes()); setSyncState({status:"idle", lastSync: Date.now(), error:null}); }
+    catch(e){ setSyncState({status:"error", error:e.message}); }
+  }, 1500);
+}
+async function syncPullAndMerge(){
+  if(!getGhToken()) return;
+  try{
+    const remote = await ghPullNotes();
+    if(remote){
+      const merged = mergeNotes(loadNotes(), remote);
+      saveNotes(merged);
+    }
+    setSyncState({status:"idle", lastSync: Date.now(), error:null});
+  }catch(e){ setSyncState({status:"error", error:e.message}); }
+}
+let syncPushTimerSessions = null;
+function scheduleSessionsSyncPush(){
+  if(!getGhToken()) return;
+  clearTimeout(syncPushTimerSessions);
+  setSyncState({status:"syncing"});
+  syncPushTimerSessions = setTimeout(async ()=>{
+    try{ await ghPushSessions(loadSessions()); setSyncState({status:"idle", lastSync: Date.now(), error:null}); }
+    catch(e){ setSyncState({status:"error", error:e.message}); }
+  }, 1500);
+}
+async function syncPullAndMergeSessions(){
+  if(!getGhToken()) return;
+  try{
+    const remote = await ghPullSessions();
+    if(remote){
+      const merged = mergeNotes(loadSessions(), remote);
+      saveSessions(merged);
+    }
+    setSyncState({status:"idle", lastSync: Date.now(), error:null});
+  }catch(e){ setSyncState({status:"error", error:e.message}); }
+}
+
+function startSyncPolling(){
+  clearInterval(syncPollTimer);
+  if(!getGhToken()) return;
+  syncPullAndMerge();
+  syncPullAndMergeSessions();
+  syncPollTimer = setInterval(async ()=>{
+    await syncPullAndMerge();
+    await syncPullAndMergeSessions();
+    if(state.view === "notes" || state.view === "sessions") renderMain();
+  }, 8000);
+}
+startSyncPolling();
+
+function renderSyncPanel(main){
+  const hasToken = !!getGhToken();
+  const syncPanel = el("div","sync-panel"+(hasToken?"":" setup"));
+  const syncRow = el("div","sync-row");
+  syncRow.appendChild(el("div","sync-dot","")); syncRow.lastChild.id = "syncDot";
+  syncRow.appendChild(el("span","sync-label","")); syncRow.lastChild.id = "syncLabel";
+  syncPanel.appendChild(syncRow);
+
+  if(hasToken){
+    const toggleRow = el("div","sync-row"); toggleRow.style.marginTop="8px";
+    const offBtn = el("button","btn","Ontkoppelen");
+    offBtn.onclick = ()=>{
+      if(!confirm("Cloud sync uitzetten op dit toestel? Je notities en sessievoorbereiding blijven lokaal bewaard.")) return;
+      setGhToken(""); clearInterval(syncPollTimer); setSyncState({status:"off", error:null});
+      renderMain();
+    };
+    toggleRow.appendChild(offBtn);
+    syncPanel.appendChild(toggleRow);
+  } else {
+    const setupRow = el("div","sync-row"); setupRow.style.marginTop="8px";
+    const tokenInput = el("input",""); tokenInput.type="password"; tokenInput.placeholder="GitHub fine-grained token (github_pat_...)";
+    const connectBtn = el("button","btn primary","Verbind");
+    connectBtn.onclick = async ()=>{
+      const t = tokenInput.value.trim();
+      if(!t) return;
+      setGhToken(t);
+      setSyncState({status:"syncing", error:null});
+      try{
+        const [remoteNotes, remoteSessions] = await Promise.all([ghPullNotes(), ghPullSessions()]);
+        const mergedNotes = mergeNotes(loadNotes(), remoteNotes||[]);
+        saveNotes(mergedNotes);
+        const mergedSessions = mergeNotes(loadSessions(), remoteSessions||[]);
+        saveSessions(mergedSessions);
+        await Promise.all([ghPushNotes(mergedNotes), ghPushSessions(mergedSessions)]);
+        setSyncState({status:"idle", lastSync: Date.now(), error:null});
+        startSyncPolling();
+        renderMain();
+      }catch(e){
+        setSyncState({status:"error", error:e.message});
+      }
+    };
+    setupRow.appendChild(tokenInput);
+    setupRow.appendChild(connectBtn);
+    syncPanel.appendChild(setupRow);
+    syncPanel.appendChild(el("div","sync-help",
+      `Wil je dat notities en sessievoorbereiding op al je toestellen tegelijk verschijnen? Maak op <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> `+
+      `een <strong>fine-grained token</strong> aan, alleen voor de repository <code>${GH_OWNER}/${GH_REPO}</code>, met "Contents" op <strong>Read and write</strong>. Plak de token hierboven. `+
+      `De token wordt alleen lokaal in deze browser bewaard, nooit gedeeld.`));
+  }
+  main.appendChild(syncPanel);
+  updateSyncBadge();
+}
+
+function renderNotes(main){
+  main.appendChild(el("h2","page-title","📝 Notities"));
+  main.appendChild(el("div","page-sub","Persoonlijke sessienotities — opgeslagen in je browser (blijft bewaard na herladen)."));
+
+  renderSyncPanel(main);
+
+  const layout = el("div","","");
+  layout.id = "notesLayout";
+  main.appendChild(layout);
+
+  const listCol = el("div",""); listCol.id="notesList";
+  const editorCol = el("div",""); editorCol.id="noteEditor";
+  layout.appendChild(listCol);
+  layout.appendChild(editorCol);
+
+  function visibleNotes(){ return loadNotes().filter(n=>!n.deleted); }
+
+  function drawList(){
+    const notes = visibleNotes().sort((a,b)=>b.updated-a.updated);
+    listCol.innerHTML = "";
+    const newBtn = el("button","btn primary","+ Nieuwe notitie");
+    newBtn.style.width = "100%"; newBtn.style.marginBottom="10px";
+    newBtn.onclick = ()=>{
+      const notes = loadNotes();
+      const n = {id: Date.now().toString(36), title:"Nieuwe notitie", body:"", book:0, created:Date.now(), updated:Date.now()};
+      notes.push(n); saveNotes(notes); activeNoteId = n.id;
+      scheduleSyncPush();
+      drawList(); drawEditor();
+    };
+    listCol.appendChild(newBtn);
+
+    if(!notes.length){
+      listCol.appendChild(el("div","empty-state","Nog geen notities."));
+    }
+    notes.forEach(n=>{
+      const c = el("div","note-card"+(n.id===activeNoteId?" active":""));
+      c.appendChild(el("div","n-title", esc(n.title||"(zonder titel)")));
+      const bookLabel = n.book>0 ? ("Boek "+n.book+" · ") : "";
+      c.appendChild(el("div","n-meta", bookLabel+new Date(n.updated).toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'})));
+      c.onclick = ()=>{ activeNoteId = n.id; drawList(); drawEditor(); };
+      listCol.appendChild(c);
+    });
+  }
+
+  function drawEditor(){
+    editorCol.innerHTML = "";
+    const notes = loadNotes();
+    const n = notes.find(x=>x.id===activeNoteId && !x.deleted);
+    if(!n){
+      editorCol.appendChild(el("div","empty-state","Selecteer of maak een notitie."));
+      return;
+    }
+    const titleInput = el("input",""); titleInput.id="noteTitle"; titleInput.value = n.title; titleInput.placeholder="Titel...";
+    editorCol.appendChild(titleInput);
+
+    const toolbar = el("div","note-toolbar");
+    const bookSel = el("select",""); bookSel.id="noteBookTag";
+    bookSel.innerHTML = `<option value="0">Geen boek-tag</option>` + BOOKS.map(b=>`<option value="${b.id}">Boek ${b.id}: ${esc(b.title)}</option>`).join("");
+    bookSel.value = n.book;
+    toolbar.appendChild(bookSel);
+
+    const delBtn = el("button","btn danger","Verwijder");
+    delBtn.onclick = ()=>{
+      if(!confirm("Deze notitie verwijderen?")) return;
+      let notes = loadNotes();
+      const idx = notes.findIndex(x=>x.id===n.id);
+      if(idx!==-1){ notes[idx].deleted = true; notes[idx].updated = Date.now(); }
+      saveNotes(notes); activeNoteId = null;
+      scheduleSyncPush();
+      drawList(); drawEditor();
+    };
+    toolbar.appendChild(delBtn);
+    toolbar.appendChild(el("div","autosave-hint","Automatisch opgeslagen"));
+    editorCol.appendChild(toolbar);
+
+    const body = el("textarea",""); body.value = n.body; body.placeholder="Schrijf hier je sessienotities, ideeën, wijzigingen aan het plot...";
+    editorCol.appendChild(body);
+
+    function persist(){
+      let notes = loadNotes();
+      const idx = notes.findIndex(x=>x.id===n.id);
+      if(idx===-1) return;
+      notes[idx].title = titleInput.value;
+      notes[idx].body = body.value;
+      notes[idx].book = parseInt(bookSel.value,10);
+      notes[idx].updated = Date.now();
+      saveNotes(notes);
+      scheduleSyncPush();
+    }
+    let saveTimer;
+    function scheduleSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ persist(); drawList(); }, 500); }
+    titleInput.oninput = scheduleSave;
+    body.oninput = scheduleSave;
+    bookSel.onchange = ()=>{ persist(); };
+  }
+
+  drawList();
+  if(!activeNoteId){
+    const notes = visibleNotes();
+    if(notes.length) activeNoteId = notes.sort((a,b)=>b.updated-a.updated)[0].id;
+  }
+  drawEditor();
+}
+
+/* =========================================================================
+   SESSION PREP (localStorage + optional GitHub cloud sync, mirrors Notes)
+   ========================================================================= */
+function renderSessions(main){
+  main.appendChild(el("h2","page-title","🎬 Sessievoorbereiding"));
+  main.appendChild(el("div","page-sub","Intro, waarschijnlijke opties en aantekeningen per sessie — apart van je algemene notities."));
+
+  renderSyncPanel(main);
+
+  const layout = el("div",""); layout.id = "notesLayout";
+  main.appendChild(layout);
+
+  const listCol = el("div",""); listCol.id="notesList";
+  const editorCol = el("div",""); editorCol.id="noteEditor";
+  layout.appendChild(listCol);
+  layout.appendChild(editorCol);
+
+  function visibleSessions(){ return loadSessions().filter(s=>!s.deleted); }
+
+  function drawList(){
+    const sessions = visibleSessions().sort((a,b)=>a.created-b.created);
+    listCol.innerHTML = "";
+    const newBtn = el("button","btn primary","+ Nieuwe sessie");
+    newBtn.style.width = "100%"; newBtn.style.marginBottom="10px";
+    newBtn.onclick = ()=>{
+      const sessions = loadSessions();
+      const nr = visibleSessions().length + 1;
+      const s = {id: Date.now().toString(36), title:"Sessie "+nr, book:0, intro:"", options:"", notes:"", created:Date.now(), updated:Date.now()};
+      sessions.push(s); saveSessions(sessions); activeSessionId = s.id;
+      scheduleSessionsSyncPush();
+      drawList(); drawEditor();
+    };
+    listCol.appendChild(newBtn);
+
+    if(!sessions.length){
+      listCol.appendChild(el("div","empty-state","Nog geen sessies voorbereid."));
+    }
+    sessions.forEach(s=>{
+      const c = el("div","note-card"+(s.id===activeSessionId?" active":""));
+      c.appendChild(el("div","n-title", esc(s.title||"(zonder titel)")));
+      const bookLabel = s.book>0 ? ("Boek "+s.book+" · ") : "";
+      c.appendChild(el("div","n-meta", bookLabel+new Date(s.updated).toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'})));
+      c.onclick = ()=>{ activeSessionId = s.id; drawList(); drawEditor(); };
+      listCol.appendChild(c);
+    });
+  }
+
+  function drawEditor(){
+    editorCol.innerHTML = "";
+    const sessions = loadSessions();
+    const s = sessions.find(x=>x.id===activeSessionId && !x.deleted);
+    if(!s){
+      editorCol.appendChild(el("div","empty-state","Selecteer of maak een sessie."));
+      return;
+    }
+    const titleInput = el("input",""); titleInput.id="noteTitle"; titleInput.value = s.title; titleInput.placeholder="Titel...";
+    editorCol.appendChild(titleInput);
+
+    const toolbar = el("div","note-toolbar");
+    const bookSel = el("select",""); bookSel.id="noteBookTag";
+    bookSel.innerHTML = `<option value="0">Geen boek-tag</option>` + BOOKS.map(b=>`<option value="${b.id}">Boek ${b.id}: ${esc(b.title)}</option>`).join("");
+    bookSel.value = s.book;
+    toolbar.appendChild(bookSel);
+
+    const delBtn = el("button","btn danger","Verwijder");
+    delBtn.onclick = ()=>{
+      if(!confirm("Deze sessie verwijderen?")) return;
+      let sessions = loadSessions();
+      const idx = sessions.findIndex(x=>x.id===s.id);
+      if(idx!==-1){ sessions[idx].deleted = true; sessions[idx].updated = Date.now(); }
+      saveSessions(sessions); activeSessionId = null;
+      scheduleSessionsSyncPush();
+      drawList(); drawEditor();
+    };
+    toolbar.appendChild(delBtn);
+    toolbar.appendChild(el("div","autosave-hint","Automatisch opgeslagen"));
+    editorCol.appendChild(toolbar);
+
+    editorCol.appendChild(el("div","field-label","🎭 Intro — sfeer om de sessie mee te openen"));
+    const introArea = el("textarea",""); introArea.value = s.intro||""; introArea.placeholder="Lees dit voor om de spelers meteen in de sfeer te krijgen...";
+    introArea.style.minHeight = "110px";
+    editorCol.appendChild(introArea);
+
+    editorCol.appendChild(el("div","field-label","🔀 Waarschijnlijke opties / vertakkingen"));
+    const optionsArea = el("textarea",""); optionsArea.value = s.options||""; optionsArea.placeholder="Wat kunnen de spelers deze sessie waarschijnlijk doen of kiezen?";
+    optionsArea.style.minHeight = "110px";
+    editorCol.appendChild(optionsArea);
+
+    editorCol.appendChild(el("div","field-label","📌 Aantekeningen"));
+    const notesArea = el("textarea",""); notesArea.value = s.notes||""; notesArea.placeholder="Losse aantekeningen, herinneringen, dingen om niet te vergeten...";
+    notesArea.style.minHeight = "140px";
+    editorCol.appendChild(notesArea);
+
+    function persist(){
+      let sessions = loadSessions();
+      const idx = sessions.findIndex(x=>x.id===s.id);
+      if(idx===-1) return;
+      sessions[idx].title = titleInput.value;
+      sessions[idx].book = parseInt(bookSel.value,10);
+      sessions[idx].intro = introArea.value;
+      sessions[idx].options = optionsArea.value;
+      sessions[idx].notes = notesArea.value;
+      sessions[idx].updated = Date.now();
+      saveSessions(sessions);
+      scheduleSessionsSyncPush();
+    }
+    let saveTimer;
+    function scheduleSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ persist(); drawList(); }, 500); }
+    titleInput.oninput = scheduleSave;
+    introArea.oninput = scheduleSave;
+    optionsArea.oninput = scheduleSave;
+    notesArea.oninput = scheduleSave;
+    bookSel.onchange = ()=>{ persist(); };
+  }
+
+  drawList();
+  if(!activeSessionId){
+    const sessions = visibleSessions();
+    if(sessions.length) activeSessionId = sessions.sort((a,b)=>b.updated-a.updated)[0].id;
+  }
+  drawEditor();
+}
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+renderTabs();
+renderNav();
+renderMain();
+</script>
+</body>
+</html>
