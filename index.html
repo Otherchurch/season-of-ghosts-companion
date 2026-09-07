@@ -750,6 +750,41 @@ const MAP_EDGE_POIS = [
   {key:"applegrove", name:"Overgrown Apple Grove", keywords:["apple grove","appelgaard"]},
 ];
 
+// Full W1-W30 gazetteer from Book 1's Willowshore Gazetteer chapter — every
+// code visible on the map image, for reference even where there's no pin.
+const WILLOWSHORE_GAZETTEER = [
+  {code:"W1", name:"Eternal Blaze Ironworks", desc:"Smederij van Yong Wu-Xiu; kan ook cold iron en zilver bewerken."},
+  {code:"W2", name:"Willowshore Stables", desc:"Veterinaire kliniek voor huisdieren en vee, geleid door Kum Soon-chong."},
+  {code:"W3", name:"Abadar Shrine", desc:"Klein heiligdom met een kalkstenen Abadar-standbeeld."},
+  {code:"W4", name:"Graveside Manners", desc:"Oude begraafplaats met kruidenwinkel, beheerd door You So-Jin."},
+  {code:"W5", name:"Silvermist Lodges", desc:"Twee jachthutten in het bos, gesticht door vroege elfse kolonisten."},
+  {code:"W6", name:"Matsuki Estate", desc:"Landgoed van 'Old' Matsuki Shou, Southbanks leider."},
+  {code:"W7", name:"Thrice-Blessed Inn", desc:"Voormalig bordeel, nu herberg, geleid door Reverent Mother Otis."},
+  {code:"W8", name:"Milling Houses", desc:"Water-, wind- en dierkrachtmolens, geleid door Choe Chung-hu."},
+  {code:"W9", name:"Nine Ear Shrine", desc:"Ondergronds Daikitsu-heiligdom met een negenstaartige-vossenstandbeeld, verzorgd door Ba-Ming Ouh."},
+  {code:"W10", name:"Her Fluvial Lady of Souls", desc:"Pharasma-tempel, geleid door priesteres Elizeth Candora."},
+  {code:"W11", name:"Dawnstep Bridge", desc:"Brug met de Eternal Lantern, het dorpsbaken dat Willowshore als 'bewoond' markeert."},
+  {code:"W12", name:"Industrial District", desc:"Voormalige houtindustriewijk; nu Cloud Paper House, Jadeite Essentials en Rebel's Leatherworks."},
+  {code:"W13", name:"Woodraft Lake", desc:"Stuwmeer ontstaan door de bouw van de Willowshore-dam."},
+  {code:"W14", name:"Willowshore Dam", desc:"De marmeren dam die Woodraft Lake vormt."},
+  {code:"W15", name:"Downtown Willowshore", desc:"Centrum met theater (The Seven-Colored Songbird), Treesparrow's Rest, badhuis The Happy Kappa en de kazerne."},
+  {code:"W16", name:"Luo and Laws", desc:"Advocatenkantoor van Luo Xi Yang."},
+  {code:"W17", name:"Mercantile Street", desc:"Houtsnijwerkersgilde, geleid door Yun Mong-un."},
+  {code:"W18", name:"Second Best", desc:"Smederij/werkplaats van uitvinder Huo Tian-Zhe."},
+  {code:"W19", name:"The Hand of Spring", desc:"Kliniek van dokter Damihansig 'Dami' Mababangloob."},
+  {code:"W20", name:"Mother's Coil", desc:"Tovenaarstoren, ooit van Anjal, nu bewoond door leerling Igawa Jubei."},
+  {code:"W21", name:"The Ceiba-Duyue Exchange", desc:"Handelskantoor (Trade Office), geleid door Kim Gu-won; Northridge-hoofdkwartier."},
+  {code:"W22", name:"Fisheries", desc:"Visserijgronden en -vijvers, geleid door Zataku."},
+  {code:"W23", name:"Dock", desc:"Willowshore's aanlegsteiger, beheerd door bootbouwer Rajul Samudra."},
+  {code:"W24", name:"The Mushroom House", desc:"Illegale zwarte markt, geleid door smokkelaarster Luda Bama."},
+  {code:"W25", name:"The Cerulean Teahouse", desc:"Theehuis, ooit van wijlen Qing Mai-Lai — wordt de PCs' latere basis."},
+  {code:"W26", name:"Abandoned Estates", desc:"Verlaten landgoederen van de voormalige houthandelaars, met een vergeten Desna-heiligdom."},
+  {code:"W27", name:"The Leshy's Salon", desc:"Theefarm, gerund door de plaatselijke leshies."},
+  {code:"W28", name:"Bones of the Forgotten", desc:"Kerkhof voor veroordeelde criminelen, met een Mark of Crime."},
+  {code:"W29", name:"The Great Willow", desc:"Kodama-geest ('Great Willow') op de top van de Trimountains, ten noorden van het dorp."},
+  {code:"W30", name:"Spider Gate", desc:"Stenen spinnenstandbeeld bij de dorpsingang — later bekend als de bondgenoot 'Ugly Cute'."},
+];
+
 function matchPOI(locationText){
   if(!locationText) return null;
   const lower = locationText.toLowerCase();
@@ -803,6 +838,19 @@ function renderMap(main, book){
   const detail = el("div","map-detail");
   detail.appendChild(el("div","empty-state","Klik op een locatie voor de NPC's die daar te vinden zijn."));
   main.appendChild(detail);
+
+  const gazTitle = el("h3","map-gaz-title","Alle kaartcodes (W1–W30)");
+  gazTitle.style.marginTop = "22px";
+  main.appendChild(gazTitle);
+  main.appendChild(el("div","page-sub","Elke locatie zoals genummerd op de kaart hierboven — ook de plekken zonder eigen NPC-pin."));
+  const gazTable = el("table","ref-table");
+  gazTable.style.marginBottom = "20px";
+  gazTable.innerHTML = "<tr><th style='width:50px'>Code</th><th style='width:220px'>Locatie</th><th>Wat is het</th></tr>";
+  WILLOWSHORE_GAZETTEER.forEach(g=>{
+    const tr = el("tr","", `<td>${esc(g.code)}</td><td><b>${esc(g.name)}</b></td><td>${esc(g.desc)}</td>`);
+    gazTable.appendChild(tr);
+  });
+  main.appendChild(gazTable);
 
   function clearSelection(){
     main.querySelectorAll(".map-pin.selected, .map-edge-tab.selected").forEach(x=>x.classList.remove("selected"));
